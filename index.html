@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intelligent Whale &amp; Dolphin Conservation — AI Pipeline</title>
+<style>
+  :root {
+    --navy: #0b1f3a;
+    --navy-2: #122c4e;
+    --teal: #1b7f8e;
+    --teal-light: #2aa5b8;
+    --red: #8e0a13;
+    --gold: #e0a100;
+    --light: #f5f8fa;
+    --muted: #7a8ca0;
+    --white: #ffffff;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --shadow: 0 8px 24px rgba(11, 31, 58, .08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--navy);
+    background: var(--light);
+    line-height: 1.6;
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative;
+    color: var(--white);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(42,165,184,.45), transparent 60%),
+      radial-gradient(900px 500px at 10% 110%, rgba(142,10,19,.35), transparent 55%),
+      linear-gradient(160deg, #071426 0%, var(--navy) 55%, #0d2b45 100%);
+    padding: 0 24px 90px;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: 0; height: 120px;
+    background:
+      radial-gradient(60% 100% at 50% 120%, rgba(42,165,184,.25), transparent 70%);
+    pointer-events: none;
+  }
+  .nav {
+    max-width: 1180px; margin: 0 auto; padding: 22px 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .3px; }
+  .brand .dot {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--teal-light), var(--teal));
+    display: grid; place-items: center; font-size: 18px;
+  }
+  .nav a { color: #cfe0ee; text-decoration: none; font-size: 14px; margin-left: 22px; }
+  .nav a:hover { color: var(--white); }
+  .hero-inner { max-width: 1180px; margin: 0 auto; padding-top: 70px; position: relative; z-index: 1; }
+  .eyebrow {
+    display: inline-block; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--teal-light); border: 1px solid rgba(42,165,184,.4);
+    padding: 6px 12px; border-radius: 999px; margin-bottom: 22px;
+    background: rgba(42,165,184,.08);
+  }
+  .hero h1 {
+    font-size: clamp(34px, 5.4vw, 62px);
+    line-height: 1.08; font-weight: 800; max-width: 900px;
+  }
+  .hero h1 .accent { color: var(--teal-light); }
+  .tagline {
+    margin-top: 20px; font-size: clamp(16px, 2vw, 22px); color: #d7e6f2;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .tagline .step {
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+    padding: 8px 16px; border-radius: 10px; font-weight: 600;
+  }
+  .tagline .arrow { color: var(--teal-light); font-weight: 700; }
+  .hero p.sub { margin-top: 16px; color: #9fb4c8; max-width: 720px; }
+  .cta { margin-top: 34px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 13px 24px; border-radius: 10px;
+    font-weight: 700; font-size: 15px; text-decoration: none; transition: .2s;
+  }
+  .btn-primary { background: var(--teal-light); color: #04222b; }
+  .btn-primary:hover { background: #3cc0d2; transform: translateY(-2px); }
+  .btn-ghost { border: 1px solid rgba(255,255,255,.3); color: var(--white); }
+  .btn-ghost:hover { background: rgba(255,255,255,.1); }
+
+  /* ---------- layout ---------- */
+  section { max-width: 1180px; margin: 0 auto; padding: 70px 24px; }
+  .section-head { margin-bottom: 34px; }
+  .section-head .kicker {
+    color: var(--teal); font-weight: 700; font-size: 13px;
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .section-head h2 { font-size: clamp(26px, 3.4vw, 38px); margin-top: 8px; }
+  .section-head p { color: var(--muted); margin-top: 10px; max-width: 720px; }
+
+  /* ---------- pipeline flow ---------- */
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+  .stage {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
+    position: relative; transition: .2s;
+  }
+  .stage:hover { transform: translateY(-4px); box-shadow: 0 14px 34px rgba(11,31,58,.14); }
+  .stage .num {
+    width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+    font-weight: 800; color: var(--white); margin-bottom: 14px;
+    background: linear-gradient(135deg, var(--navy-2), var(--navy));
+  }
+  .stage h3 { font-size: 17px; margin-bottom: 8px; }
+  .stage p { font-size: 13.5px; color: var(--muted); }
+  .stage .tag {
+    display: inline-block; margin-top: 12px; font-size: 11px; font-weight: 700;
+    letter-spacing: .6px; text-transform: uppercase; padding: 4px 9px; border-radius: 999px;
+  }
+  .tag-bronze { background: #f3e3d3; color: #8a5a2b; }
+  .tag-silver { background: #e3eef5; color: #2b6a8a; }
+  .tag-gold { background: #fdf0d0; color: #8a6a00; }
+  .tag-model { background: #e5f3f5; color: var(--teal); }
+  .tag-app { background: #fde8ea; color: var(--red); }
+
+  .flow-note {
+    margin-top: 26px; display: flex; gap: 14px; align-items: center;
+    background: var(--navy); color: #d7e6f2; padding: 18px 22px; border-radius: 14px;
+  }
+  .flow-note .icon { font-size: 26px; }
+  .flow-note b { color: var(--white); }
+
+  /* ---------- data layers ---------- */
+  .layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .layer {
+    border-radius: 16px; padding: 24px; color: var(--white);
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .layer::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(160deg, rgba(255,255,255,.12), transparent 55%);
+  }
+  .layer h3 { font-size: 20px; margin-bottom: 6px; position: relative; }
+  .layer .sub { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; opacity: .8; position: relative; }
+  .layer ul { margin-top: 14px; padding-left: 18px; font-size: 14px; position: relative; }
+  .layer li { margin-bottom: 6px; }
+  .layer.bronze { background: linear-gradient(150deg, #a06a35, #7a4d22); }
+  .layer.silver { background: linear-gradient(150deg, #2b6a8a, #1d4d68); }
+  .layer.gold { background: linear-gradient(150deg, #b8860b, #8a6a00); }
+
+  /* ---------- models ---------- */
+  .models { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .model {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 22px; box-shadow: var(--shadow);
+  }
+  .model .head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .model .badge {
+    width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+    font-size: 20px; background: var(--navy); color: var(--white);
+  }
+  .model h3 { font-size: 17px; }
+  .model .role { font-size: 12px; color: var(--muted); }
+  .model p { font-size: 13.5px; color: var(--muted); }
+  .metrics { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .metric {
+    background: var(--light); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .metric .v { font-size: 20px; font-weight: 800; color: var(--navy); }
+  .metric .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+
+  /* ---------- results ---------- */
+  .results { display: grid; grid-template-columns: 1.1fr .9fr; gap: 22px; align-items: stretch; }
+  .panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 24px; box-shadow: var(--shadow);
+  }
+  .panel h3 { font-size: 18px; margin-bottom: 14px; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .kpi {
+    background: var(--light); border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+  }
+  .kpi .v { font-size: 26px; font-weight: 800; }
+  .kpi .k { font-size: 12px; color: var(--muted); }
+  .kpi.good .v { color: #1a7f4b; }
+  .kpi.warn .v { color: var(--red); }
+  .kpi.info .v { color: var(--teal); }
+
+  .map-wrap { position: relative; }
+  .map-wrap svg { width: 100%; height: auto; display: block; border-radius: 12px; }
+  .legend { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+  /* ---------- advisories ---------- */
+  .advisories { display: grid; gap: 14px; }
+  .adv {
+    background: var(--card); border: 1px solid var(--border); border-left: 5px solid var(--red);
+    border-radius: 12px; padding: 16px 20px; box-shadow: var(--shadow);
+  }
+  .adv .top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .adv .pill {
+    font-size: 11px; font-weight: 800; letter-spacing: .8px; padding: 3px 10px;
+    border-radius: 999px; background: #fde8ea; color: var(--red);
+  }
+  .adv .zone { font-weight: 700; }
+  .adv p { font-size: 14px; color: #40566d; }
+
+  /* ---------- tech ---------- */
+  .tech { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .tech .item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; text-align: center; box-shadow: var(--shadow);
+  }
+  .tech .item .ico { font-size: 24px; }
+  .tech .item b { display: block; margin-top: 8px; font-size: 14px; }
+  .tech .item span { font-size: 12px; color: var(--muted); }
+
+  footer {
+    background: var(--navy); color: #9fb4c8; padding: 40px 24px; margin-top: 40px;
+  }
+  footer .inner { max-width: 1180px; margin: 0 auto; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  footer b { color: var(--white); }
+
+  @media (max-width: 980px) {
+    .flow { grid-template-columns: repeat(2, 1fr); }
+    .layers, .models, .results, .tech { grid-template-columns: 1fr; }
+    .nav a { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <nav class="nav">
+    <div class="brand"><span class="dot">🐋</span> WhaleAI Conservation</div>
+    <div>
+      <a href="#pipeline">Pipeline</a>
+      <a href="#data">Data</a>
+      <a href="#models">Models</a>
+      <a href="#results">Results</a>
+      <a href="#advisories">Advisories</a>
+    </div>
+  </nav>
+  <div class="hero-inner">
+    <span class="eyebrow">Capstone · ASAC-CP-141</span>
+    <h1>Intelligent <span class="accent">Whale &amp; Dolphin</span> Conservation AI Pipeline</h1>
+    <div class="tagline">
+      <span class="step">Listen</span><span class="arrow">→</span>
+      <span class="step">Recognise</span><span class="arrow">→</span>
+      <span class="step">Predict</span><span class="arrow">→</span>
+      <span class="step">Warn</span>
+    </div>
+    <p class="sub">
+      An end-to-end AI system that turns underwater audio into species identifications,
+      forecasts whale presence, maps ship-strike risk from AIS traffic, and issues
+      plain-language advisories to vessels.
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="#results">See live results</a>
+      <a class="btn btn-ghost" href="#pipeline">Explore the pipeline</a>
+    </div>
+  </div>
+</header>
+
+<!-- ================= PIPELINE ================= -->
+<section id="pipeline">
+  <div class="section-head">
+    <div class="kicker">Architecture</div>
+    <h2>The 8-stage AI pipeline</h2>
+    <p>Raw audio and ship traffic flow through Bronze → Silver → Gold layers before reaching the web app.</p>
+  </div>
+
+  <div class="flow">
+    <div class="stage">
+      <div class="num">1</div>
+      <h3>Data Ingestion</h3>
+      <p>Watkins clips, NOAA audio, SanctSound detections and MarineCadastre AIS ship data.</p>
+      <span class="tag tag-bronze">Bronze · raw</span>
+    </div>
+    <div class="stage">
+      <div class="num">2</div>
+      <h3>Spectrograms &amp; Cleaning</h3>
+      <p>5 s windows, band-pass, 128-band log-mel spectrograms, cleaned AIS tracks.</p>
+      <span class="tag tag-silver">Silver · clean</span>
+    </div>
+    <div class="stage">
+      <div class="num">3</div>
+      <h3>Species Classification AI</h3>
+      <p>Baseline CNN, ResNet-50, EfficientNet-B0 and PANNs benchmarked head-to-head.</p>
+      <span class="tag tag-model">Model</span>
+    </div>
+    <div class="stage">
+      <div class="num">4</div>
+      <h3>Trust &amp; Robustness</h3>
+      <p>Ship-noise mixing at 0–20 dB SNR plus Grad-CAM interpretability checks.</p>
+      <span class="tag tag-model">Validation</span>
+    </div>
+    <div class="stage">
+      <div class="num">5</div>
+      <h3>7-Day Presence Forecast</h3>
+      <p>LightGBM on season, day-of-year and past detections per site and species.</p>
+      <span class="tag tag-gold">Gold · forecast</span>
+    </div>
+    <div class="stage">
+      <div class="num">6</div>
+      <h3>Dynamic Risk Engine</h3>
+      <p>Risk = P(whale) × ship exposure × speed lethality, on an H3 grid.</p>
+      <span class="tag tag-gold">Gold · risk</span>
+    </div>
+    <div class="stage">
+      <div class="num">7</div>
+      <h3>Ship Advisories</h3>
+      <p>Plain-language bulletins and alerts for high-risk cells and shipping lanes.</p>
+      <span class="tag tag-app">Output</span>
+    </div>
+    <div class="stage">
+      <div class="num">8</div>
+      <h3>Streamlit Web App</h3>
+      <p>Audio upload, live risk map, ship bulletins and alerts in one dashboard.</p>
+      <span class="tag tag-app">Interface</span>
+    </div>
+  </div>
+
+  <div class="flow-note">
+    <span class="icon">🧪</span>
+    <div><b>Experiment tracking:</b> every model run is logged to Databricks MLflow (tracking, registry, versioning) so results are reproducible and comparable.</div>
+  </div>
+</section>
+
+<!-- ================= DATA LAYERS ================= -->
+<section id="data">
+  <div class="section-head">
+    <div class="kicker">Medallion architecture</div>
+    <h2>Bronze → Silver → Gold</h2>
+  </div>
+  <div class="layers">
+    <div class="layer bronze">
+      <div class="sub">Bronze</div>
+      <h3>Raw Data &amp; Logs</h3>
+      <ul>
+        <li>Watkins whale-call clips</li>
+        <li>NOAA / SanctSound audio &amp; detections</li>
+        <li>MarineCadastre AIS ship tracks</li>
+        <li>Ingestion logs &amp; run metadata</li>
+      </ul>
+    </div>
+    <div class="layer silver">
+      <div class="sub">Silver</div>
+      <h3>Spectrograms &amp; Clean AIS</h3>
+      <ul>
+        <li>Log-mel spectrogram arrays</li>
+        <li>Cleaned, deduplicated AIS positions</li>
+        <li>Standardised feature tables</li>
+        <li>Train / val / test splits (by file)</li>
+      </ul>
+    </div>
+    <div class="layer gold">
+      <div class="sub">Gold</div>
+      <h3>H3 Grid · Weekly Risk Table</h3>
+      <ul>
+        <li>7-day presence forecast per site/species</li>
+        <li>Cell-level ship-strike risk score</li>
+        <li>10-knot what-if scenario</li>
+        <li>Plain-language advisories</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MODELS ================= -->
+<section id="models">
+  <div class="section-head">
+    <div class="kicker">Models</div>
+    <h2>Three AI engines</h2>
+    <p>Each engine is validated on held-out data and stress-tested for real-world noise.</p>
+  </div>
+  <div class="models">
+    <div class="model">
+      <div class="head">
+        <div class="badge">🎧</div>
+        <div>
+          <h3>Species Classifier</h3>
+          <div class="role">Recognise which animal is calling</div>
+        </div>
+      </div>
+      <p>Log-mel spectrograms classified with a custom CNN, ResNet-50 and EfficientNet-B0 transfer learning.</p>
+      <div class="metrics">
+        <div class="metric"><div class="v">94.8%</div><div class="k">Accuracy</div></div>
+        <div class="metric"><div class="v">0.947</div><div class="k">Macro F1</div></div>
+      </div>
+    </div>
+    <div class="model">
+      <div class="head">
+        <div class="badge">📈</div>
+        <div>
+          <h3>Presence Forecast</h3>
+          <div class="role">Will whales be here in 7 days?</div>
+        </div>
+      </div>
+      <p>Gradient boosting on seasonality, day-of-year and recent detection history per site and species.</p>
+      <div class="metrics">
+        <div class="metric"><div class="v">0.877</div><div class="k">ROC AUC</div></div>
+        <div class="metric"><div class="v">0.882</div><div class="k">F1 score</div></div>
+      </div>
+    </div>
+    <div class="model">
+      <div class="head">
+        <div class="badge">🚢</div>
+        <div>
+          <h3>Ship-Strike Risk Engine</h3>
+          <div class="role">Where are collisions most likely?</div>
+        </div>
+      </div>
+      <p>P(whale) × ship-km × P(lethal | speed), with a what-if scenario for 10-knot slow zones.</p>
+      <div class="metrics">
+        <div class="metric"><div class="v">248</div><div class="k">Risk cells</div></div>
+        <div class="metric"><div class="v">51.7%</div><div class="k">Risk cut @ 10 kn</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESULTS ================= -->
+<section id="results">
+  <div class="section-head">
+    <div class="kicker">Demo output</div>
+    <h2>Weekly ship-strike risk map</h2>
+    <p>Southern California Bight · 248 grid cells · 25 high-risk cells this week.</p>
+  </div>
+
+  <div class="results">
+    <div class="panel map-wrap">
+      <svg viewBox="0 0 640 420" role="img" aria-label="Ship-strike risk map">
+        <defs>
+          <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0d2b45"/>
+            <stop offset="100%" stop-color="#123c5e"/>
+          </linearGradient>
+        </defs>
+        <rect width="640" height="420" fill="url(#sea)" rx="12"/>
+        <!-- coastline -->
+        <path d="M0,0 L640,0 L640,120 C520,140 480,190 380,205 C300,217 260,260 170,265 C110,269 60,300 0,305 Z"
+              fill="#1d4d68" opacity=".9"/>
+        <!-- grid cells -->
+        <g id="cells"></g>
+        <!-- shipping lanes -->
+        <path d="M60,60 C180,140 300,200 470,300" stroke="#e0a100" stroke-width="2"
+              fill="none" stroke-dasharray="6 5" opacity=".55"/>
+        <path d="M40,90 C160,170 300,240 520,330" stroke="#e0a100" stroke-width="2"
+              fill="none" stroke-dasharray="6 5" opacity=".55"/>
+        <!-- acoustic sites -->
+        <g>
+          <polygon points="500,95 492,110 508,110" fill="#ffffff"/>
+          <text x="500" y="90" fill="#fff" font-size="10" text-anchor="middle">CI01</text>
+          <polygon points="390,160 382,175 398,175" fill="#ffffff"/>
+          <text x="390" y="155" fill="#fff" font-size="10" text-anchor="middle">CI02</text>
+          <polygon points="300,240 292,255 308,255" fill="#ffffff"/>
+          <text x="300" y="235" fill="#fff" font-size="10" text-anchor="middle">CI03</text>
+        </g>
+        <text x="20" y="400" fill="#9fb4c8" font-size="11">Southern California Bight · H3 grid · demo data</text>
+      </svg>
+      <div class="legend">
+        <span><i style="background:#8e0a13"></i> High risk</span>
+        <span><i style="background:#e0a100"></i> Medium risk</span>
+        <span><i style="background:#9db4d3"></i> Low risk</span>
+        <span><i style="background:#fff"></i> Acoustic site</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>This week at a glance</h3>
+      <div class="kpis">
+        <div class="kpi info"><div class="v">248</div><div class="k">Grid cells</div></div>
+        <div class="kpi warn"><div class="v">25</div><div class="k">High-risk cells</div></div>
+        <div class="kpi good"><div class="v">51.7%</div><div class="k">Risk cut @ 10 kn</div></div>
+        <div class="kpi"><div class="v">135</div><div class="k">Vessels tracked</div></div>
+        <div class="kpi"><div class="v">16.2k</div><div class="k">AIS points</div></div>
+        <div class="kpi"><div class="v">5 / 6</div><div class="k">Classes detected</div></div>
+      </div>
+      <p style="margin-top:16px;font-size:13.5px;color:#7a8ca0;">
+        Slowing all large vessels in the study area to 10 knots or less would cut the
+        weekly lethal ship-strike risk by roughly half, with the largest gains inside
+        the high-risk cells.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ADVISORIES ================= -->
+<section id="advisories">
+  <div class="section-head">
+    <div class="kicker">Output</div>
+    <h2>Ship advisories this week</h2>
+    <p>Auto-generated, plain-language messages for the highest-risk cells.</p>
+  </div>
+  <div class="advisories">
+    <div class="adv">
+      <div class="top"><span class="pill">HIGH</span><span class="zone">Zone 33.52 N, 119.03 W</span></div>
+      <p>Whale presence likely this week (P=0.89). Ships here average 14.0 kn. Reduce speed to
+         10 kn or less — this cuts lethal-strike risk by ~52%. Keep a lookout and report sightings.</p>
+    </div>
+    <div class="adv">
+      <div class="top"><span class="pill">HIGH</span><span class="zone">Zone 33.50 N, 119.10 W</span></div>
+      <p>Whale presence likely this week (P=0.87). Ships here average 13.8 kn. Reduce speed to
+         10 kn or less — this cuts lethal-strike risk by ~53%. Keep a lookout and report sightings.</p>
+    </div>
+    <div class="adv">
+      <div class="top"><span class="pill">HIGH</span><span class="zone">Zone 33.48 N, 119.06 W</span></div>
+      <p>Whale presence likely this week (P=0.84). Ships here average 14.4 kn. Reduce speed to
+         10 kn or less — this cuts lethal-strike risk by ~50%. Keep a lookout and report sightings.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TECH ================= -->
+<section>
+  <div class="section-head">
+    <div class="kicker">Stack</div>
+    <h2>Built with</h2>
+  </div>
+  <div class="tech">
+    <div class="item"><div class="ico">🐍</div><b>Python</b><span>PyTorch · scikit-learn · LightGBM</span></div>
+    <div class="item"><div class="ico">🎛️</div><b>Streamlit</b><span>Web app &amp; dashboard</span></div>
+    <div class="item"><div class="ico">🧱</div><b>H3 Grid</b><span>Uber spatial indexing</span></div>
+    <div class="item"><div class="ico">📊</div><b>MLflow</b><span>Tracking · registry · versioning</span></div>
+  </div>
+</section>
+
+<footer>
+  <div class="inner">
+    <div>
+      <b>🐋 Intelligent Whale &amp; Dolphin Conservation</b><br>
+      Capstone ASAC-CP-141 · Listen → Recognise → Predict → Warn
+    </div>
+    <div style="text-align:right">
+      Demo build · synthetic sample data<br>
+      Replace with Watkins / NOAA / MarineCadastre for production
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Draw random-ish risk cells on the SVG map (deterministic for a stable demo)
+  (function () {
+    const svg = document.getElementById('cells');
+    if (!svg) return;
+    const colors = { HIGH: '#8e0a13', MEDIUM: '#e0a100', LOW: '#9db4d3' };
+    let seed = 42;
+    function rand() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+
+    // cluster centres along the two shipping lanes
+    const clusters = [
+      { x: 470, y: 300, n: 9, level: 'HIGH' },
+      { x: 420, y: 255, n: 8, level: 'HIGH' },
+      { x: 350, y: 205, n: 7, level: 'MEDIUM' },
+      { x: 500, y: 340, n: 6, level: 'MEDIUM' },
+      { x: 250, y: 160, n: 6, level: 'LOW' },
+      { x: 540, y: 250, n: 5, level: 'LOW' },
+    ];
+    clusters.forEach(c => {
+      for (let i = 0; i < c.n; i++) {
+        const r = 6 + rand() * 16;
+        const cx = c.x + (rand() - .5) * 90;
+        const cy = c.y + (rand() - .5) * 70;
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', cx - r);
+        rect.setAttribute('y', cy - r);
+        rect.setAttribute('width', r * 2);
+        rect.setAttribute('height', r * 2);
+        rect.setAttribute('rx', 4);
+        rect.setAttribute('fill', colors[c.level]);
+        rect.setAttribute('opacity', (0.35 + rand() * 0.5).toFixed(2));
+        svg.appendChild(rect);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
