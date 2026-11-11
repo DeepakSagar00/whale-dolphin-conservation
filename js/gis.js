@@ -1,43 +1,35 @@
-/* GIS Marine Explorer - interactive map, filters, layer controls and record table */
+/* GIS Marine Map — visualisation of marine observations plus an on-map
+   collection workflow for submitting new records. */
 (function () {
   'use strict';
-  var ALL = window.SITE_DATA.sightings;
-  var esc = window.SITE.escapeHtml;
 
-  var speciesSel = document.getElementById('gis-species');
-  var regionSel = document.getElementById('gis-region');
-  var fromSel = document.getElementById('gis-from');
-  var toSel = document.getElementById('gis-to');
-  var tableBody = document.getElementById('gis-table');
-  var countEl = document.getElementById('gis-count');
-  var resetBtn = document.getElementById('gis-reset');
+  var el = function (id) { return document.getElementById(id); };
+  var esc = function (t) {
+    return String(t == null ? '' : t)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
 
-  var COLORS = { 'humpback-whale': '#1b6ca8', 'spinner-dolphin': '#17a2b8' };
-  var LABELS = { 'humpback-whale': 'Humpback whale', 'spinner-dolphin': 'Spinner dolphin' };
+  var COLORS = {
+    'Humpback whale': '#1b80c4',
+    'Spinner dolphin': '#12a8b8',
+    'Humpback Whale': '#1b80c4',
+    'Spinner Dolphin': '#12a8b8'
+  };
+  var SUBMIT_COLOR = '#35d6c4';
 
-  /* ---- build filter options ---- */
-  var speciesIds = {};
-  var years = {};
-  ALL.forEach(function (s) {
-    speciesIds[s.speciesId] = LABELS[s.speciesId] || s.species;
-    var y = parseInt(s.date.slice(0, 4), 10);
-    if (!isNaN(y)) years[y] = true;
-  });
-  Object.keys(speciesIds).forEach(function (id) {
-    var o = document.createElement('option');
-    o.value = id; o.textContent = speciesIds[id];
-    speciesSel.appendChild(o);
-  });
-  var yearList = Object.keys(years).map(Number).sort(function (a, b) { return a - b; });
-  yearList.forEach(function (y) {
-    [fromSel, toSel].forEach(function (sel) {
-      var o = document.createElement('option');
-      o.value = y; o.textContent = y;
-      sel.appendChild(o);
-    });
-  });
+  var state = {
+    map: null,
+    markerLayer: null,
+    records: [],
+    markers: [],
+    layers: {},
+    filter: { species: {}, region: '', from: '', to: '', q: '' },
+    selected: null,
+    collecting: false
+  };
 
-  /* ---- region classifier from coordinates ---- */
+  /* --------------------------------------------------------- geo helpers */
   function regionOf(lat, lon) {
     if (lat < -35) return 'Southern Ocean';
     if (lon < -30) return 'Atlantic';
@@ -47,144 +39,393 @@
     return 'Indian Ocean';
   }
 
-  /* ---- map setup ---- */
-  var map = L.map('map', { scrollWheelZoom: true }).setView([4, 62], 3);
-  var tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+  /* ------------------------------------------------------------- data load */
+  function loadRecords() {
+    return window.API.publicSightings({ limit: 4000 }).then(function (r) {
+      state.records = (r.sightings || []).map(function (s) {
+        return {
+          id: s.id,
+          species: s.common_name || 'Unidentified',
+          scientific: s.scientific_name || '',
+          lat: s.lat, lon: s.lon,
+          date: s.event_date || '',
+          count: s.individual_count,
+          source: s.source || 'OBIS',
+          region: regionOf(s.lat, s.lon),
+          year: s.event_date ? parseInt(String(s.event_date).slice(0, 4), 10) : null,
+          kind: 'db'
+        };
+      });
+      // platform submissions recorded through this workflow
+      return window.API.listObservations({ limit: 2000 }).catch(function () { return null; });
+    }).then(function (obs) {
+      if (obs && obs.observations) {
+        obs.observations.forEach(function (o) {
+          state.records.push({
+            id: 'o' + o.id,
+            obsId: o.id,
+            species: o.common_name,
+            scientific: o.scientific_name || '',
+            lat: o.lat, lon: o.lon,
+            date: o.observed_at,
+            count: o.individuals,
+            source: o.source || 'Platform submission',
+            notes: o.notes,
+            media: o.media_filename,
+            confirmed: o.count_confirmed,
+            region: regionOf(o.lat, o.lon),
+            year: o.observed_at ? parseInt(String(o.observed_at).slice(0, 4), 10) : null,
+            kind: 'submission'
+          });
+        });
+      }
+      buildSpeciesList();
+      buildYearFilters();
+      render();
+    }).catch(function (err) {
+      el('gis-count').textContent = 'unable to load records';
+      if (window.SHELL) window.SHELL.setConnection(false, 'API offline');
+    });
+  }
 
-  // if the map tiles cannot be reached (offline / restricted network) the
-  // records and markers still work, so just explain what is missing
-  var tileFailures = 0;
-  tiles.on('tileerror', function () {
-    tileFailures++;
-    if (tileFailures === 4) {
-      var note = document.createElement('div');
-      note.className = 'map-fallback';
-      note.style.cssText = 'position:absolute;inset:auto 12px 12px 12px;background:rgba(255,255,255,.96);' +
-        'border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:.85rem;color:var(--ink-400);z-index:600';
-      note.textContent = 'Base map tiles could not be loaded (no internet connection to the tile server). ' +
-        'Sighting markers and the record table below are still fully functional.';
-      document.querySelector('.map-wrap').appendChild(note);
-    }
-  });
+  /* -------------------------------------------------------- filter widgets */
+  function buildSpeciesList() {
+    var counts = {};
+    state.records.forEach(function (r) {
+      counts[r.species] = (counts[r.species] || 0) + 1;
+    });
+    var host = el('gis-species-list');
+    host.innerHTML = Object.keys(counts).sort().map(function (s) {
+      var on = state.filter.species[s] !== false;
+      var color = COLORS[s] || '#647d90';
+      return '<label class="filterrow' + (on ? ' filterrow--on' : '') + '" data-species="' + esc(s) + '">' +
+        '<input type="checkbox" ' + (on ? 'checked' : '') + '>' +
+        '<span class="dot" style="background:' + color + '"></span>' +
+        '<span>' + esc(s) + '</span><span class="n">' + counts[s] + '</span></label>';
+    }).join('');
 
-  var markerLayer = L.layerGroup().addTo(map);
-  var densityLayer = L.layerGroup();
-  var markers = [];
+    Array.prototype.forEach.call(host.querySelectorAll('.filterrow'), function (row) {
+      row.addEventListener('click', function () {
+        var s = row.dataset.species;
+        state.filter.species[s] = state.filter.species[s] === false;
+        row.classList.toggle('filterrow--on', state.filter.species[s] !== false);
+        row.querySelector('input').checked = state.filter.species[s] !== false;
+        render();
+      });
+    });
 
-  function filtered() {
-    var sp = speciesSel.value;
-    var rg = regionSel.value;
-    var from = fromSel.value ? parseInt(fromSel.value, 10) : null;
-    var to = toSel.value ? parseInt(toSel.value, 10) : null;
+    var sel = el('gis-species');
+    sel.innerHTML = '<option value="">All species</option>' +
+      Object.keys(counts).sort().map(function (s) {
+        return '<option value="' + esc(s) + '">' + esc(s) + '</option>';
+      }).join('');
+  }
 
-    return ALL.filter(function (s) {
-      if (sp && s.speciesId !== sp) return false;
-      if (rg && regionOf(s.lat, s.lon) !== rg) return false;
-      var y = parseInt(s.date.slice(0, 4), 10);
-      if (!isNaN(y)) {
-        if (from && y < from) return false;
-        if (to && y > to) return false;
+  function buildYearFilters() {
+    var years = {};
+    state.records.forEach(function (r) { if (r.year) years[r.year] = true; });
+    var list = Object.keys(years).map(Number).sort(function (a, b) { return a - b; });
+    ['gis-from', 'gis-to'].forEach(function (id) {
+      var sel = el(id);
+      var label = id === 'gis-from' ? 'From: any year' : 'To: any year';
+      sel.innerHTML = '<option value="">' + label + '</option>' +
+        list.map(function (y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
+    });
+  }
+
+  function visibleRecords() {
+    return state.records.filter(function (r) {
+      if (state.filter.species[r.species] === false) return false;
+      if (state.filter.region && r.region !== state.filter.region) return false;
+      if (state.filter.from && r.year && r.year < parseInt(state.filter.from, 10)) return false;
+      if (state.filter.to && r.year && r.year > parseInt(state.filter.to, 10)) return false;
+      if (state.filter.q) {
+        var hay = (r.species + ' ' + r.scientific + ' ' + r.region + ' ' + r.source).toLowerCase();
+        if (hay.indexOf(state.filter.q.toLowerCase()) === -1) return false;
       }
       return true;
     });
   }
 
-  function renderDensity(list) {
-    densityLayer.clearLayers();
-    var bins = {};
-    list.forEach(function (s) {
-      var key = Math.floor(s.lat / 5) + '_' + Math.floor(s.lon / 5);
-      bins[key] = (bins[key] || 0) + 1;
-    });
-    Object.keys(bins).forEach(function (k) {
-      var parts = k.split('_');
-      var lat = (parseInt(parts[0], 10) + 0.5) * 5;
-      var lon = (parseInt(parts[1], 10) + 0.5) * 5;
-      var n = bins[k];
-      L.circle([lat, lon], {
-        radius: 60000 + n * 9000,
-        color: '#d68910',
-        weight: 0,
-        fillColor: '#e0a100',
-        fillOpacity: Math.min(0.42, 0.08 + n * 0.012)
-      }).addTo(densityLayer);
-    });
-  }
-
+  /* -------------------------------------------------------------- rendering */
   function render() {
-    var list = filtered();
-    markerLayer.clearLayers();
-    markers = [];
+    if (!state.map) return;
+    var list = visibleRecords();
+    state.markerLayer.clearLayers();
+    state.markers = [];
 
-    var showH = document.getElementById('lyr-humpback').checked;
-    var showS = document.getElementById('lyr-spinner').checked;
-
-    list.forEach(function (s) {
-      if (s.speciesId === 'humpback-whale' && !showH) return;
-      if (s.speciesId === 'spinner-dolphin' && !showS) return;
-      var mk = L.circleMarker([s.lat, s.lon], {
-        radius: 4.5,
-        color: '#ffffff',
-        weight: 1,
-        fillColor: COLORS[s.speciesId] || '#647d90',
-        fillOpacity: 0.9
+    list.forEach(function (r) {
+      var color = r.kind === 'submission' ? SUBMIT_COLOR : (COLORS[r.species] || '#647d90');
+      var mk = L.circleMarker([r.lat, r.lon], {
+        radius: r.kind === 'submission' ? 6 : 4.5,
+        color: '#ffffff', weight: 1,
+        fillColor: color, fillOpacity: 0.92
       });
-      mk.bindPopup(
-        '<strong>' + esc(s.species) + '</strong><br>' +
-        esc(s.lat.toFixed(3)) + '&deg;, ' + esc(s.lon.toFixed(3)) + '&deg;<br>' +
-        'Date: ' + esc(s.date) + '<br>' +
-        'Individuals: ' + (s.count == null ? 'not recorded' : s.count) + '<br>' +
-        'Region: ' + esc(regionOf(s.lat, s.lon))
-      );
-      mk.addTo(markerLayer);
-      markers.push(mk);
+      mk.bindPopup(popupHtml(r));
+      mk.on('click', function () { select(r, mk); });
+      mk.addTo(state.markerLayer);
+      state.markers.push({ rec: r, marker: mk });
     });
 
-    if (document.getElementById('lyr-heat').checked) {
-      renderDensity(list);
-      if (!map.hasLayer(densityLayer)) densityLayer.addTo(map);
-    } else if (map.hasLayer(densityLayer)) {
-      map.removeLayer(densityLayer);
-    }
+    el('gis-count').textContent = list.length.toLocaleString('en-US') + ' of ' +
+      state.records.length.toLocaleString('en-US') + ' records shown';
 
-    countEl.textContent = list.length.toLocaleString('en-US') + ' records match the current filters';
-
-    var rows = list.slice(0, 250).map(function (s, i) {
-      return '<tr data-i="' + i + '" style="cursor:pointer">' +
-        '<td>' + esc(s.species) + '</td>' +
-        '<td>' + s.lat.toFixed(3) + '</td>' +
-        '<td>' + s.lon.toFixed(3) + '</td>' +
-        '<td>' + esc(s.date) + '</td>' +
-        '<td>' + (s.count == null ? '&ndash;' : s.count) + '</td></tr>';
+    var rows = list.slice(0, 300).map(function (r, i) {
+      return '<tr class="row-click" data-i="' + i + '">' +
+        '<td>' + esc(r.species) + (r.kind === 'submission' ? ' <span class="badge badge--info">new</span>' : '') + '</td>' +
+        '<td>' + esc(r.date) + '</td>' +
+        '<td class="mono">' + r.lat.toFixed(3) + '</td>' +
+        '<td class="mono">' + r.lon.toFixed(3) + '</td>' +
+        '<td class="num">' + (r.count == null ? '&ndash;' : r.count) + '</td>' +
+        '<td><span class="badge ' + (r.kind === 'submission' ? 'badge--info' : 'badge--grey') + '">' + esc(r.source) + '</span></td>' +
+        '</tr>';
     }).join('');
-    tableBody.innerHTML = rows || '<tr><td colspan="5">No records match these filters.</td></tr>';
+    el('gis-table').innerHTML = rows || '<tr><td colspan="6" class="empty">No records match the current filters.</td></tr>';
 
-    Array.prototype.forEach.call(tableBody.querySelectorAll('tr[data-i]'), function (tr) {
+    Array.prototype.forEach.call(el('gis-table').querySelectorAll('tr[data-i]'), function (tr) {
       tr.addEventListener('click', function () {
-        var mk = markers[parseInt(tr.dataset.i, 10)];
-        if (!mk) return;
-        map.setView(mk.getLatLng(), 6);
-        mk.openPopup();
+        var item = state.markers[parseInt(tr.dataset.i, 10)];
+        if (!item) return;
+        state.map.setView(item.marker.getLatLng(), 6);
+        item.marker.openPopup();
+        select(item.rec, item.marker);
       });
     });
   }
 
-  [speciesSel, regionSel, fromSel, toSel].forEach(function (el) {
-    el.addEventListener('change', render);
-  });
-  ['lyr-humpback', 'lyr-spinner', 'lyr-heat'].forEach(function (id) {
-    document.getElementById(id).addEventListener('change', render);
-  });
-  resetBtn.addEventListener('click', function () {
-    speciesSel.value = ''; regionSel.value = ''; fromSel.value = ''; toSel.value = '';
-    document.getElementById('lyr-humpback').checked = true;
-    document.getElementById('lyr-spinner').checked = true;
-    document.getElementById('lyr-heat').checked = false;
-    render();
-  });
+  function popupHtml(r) {
+    return '<strong>' + esc(r.species) + '</strong><br>' +
+      (r.scientific ? '<em>' + esc(r.scientific) + '</em><br>' : '') +
+      'Date: ' + esc(r.date) + '<br>' +
+      'Position: ' + r.lat.toFixed(3) + '&deg;, ' + r.lon.toFixed(3) + '&deg;<br>' +
+      'Individuals: ' + (r.count == null ? 'not recorded' : r.count) + '<br>' +
+      'Region: ' + esc(r.region) + '<br>' +
+      'Source: ' + esc(r.source);
+  }
 
-  render();
+  function select(rec, marker) {
+    state.selected = rec;
+    el('gis-detail-panel').style.display = '';
+    el('gis-detail-title').textContent = rec.species;
+    el('gis-detail-sub').textContent = rec.scientific || rec.source;
+    el('gis-detail').innerHTML =
+      '<dl>' +
+      '<div><dt>Date observed</dt><dd>' + esc(rec.date || 'not recorded') + '</dd></div>' +
+      '<div><dt>Latitude</dt><dd>' + rec.lat.toFixed(4) + '&deg;</dd></div>' +
+      '<div><dt>Longitude</dt><dd>' + rec.lon.toFixed(4) + '&deg;</dd></div>' +
+      '<div><dt>Individuals</dt><dd>' + (rec.count == null ? 'not recorded' : rec.count) + '</dd></div>' +
+      '<div><dt>Region</dt><dd>' + esc(rec.region) + '</dd></div>' +
+      '<div><dt>Source</dt><dd>' + esc(rec.source) + '</dd></div>' +
+      (rec.confirmed === false ? '<div><dt>Verification</dt><dd><span class="badge badge--vu">unverified count</span></dd></div>' : '') +
+      (rec.notes ? '<div><dt>Notes</dt><dd style="text-align:left">' + esc(rec.notes) + '</dd></div>' : '') +
+      (rec.media ? '<div><dt>Attachment</dt><dd>' + esc(rec.media) + '</dd></div>' : '') +
+      '</dl>';
+    if (marker) {
+      marker.setStyle({ color: '#c0392b', weight: 2.5, radius: 8 });
+      setTimeout(function () { marker.setStyle({ color: '#ffffff', weight: 1, radius: rec.kind === 'submission' ? 6 : 4.5 }); }, 2200);
+    }
+  }
+
+  /* -------------------------------------------------------- collection mode */
+  function startCollect() {
+    state.collecting = true;
+    el('gis-collect-panel').style.display = '';
+    el('collect-step').textContent = 'Step 1 \u2014 click the map to place the record';
+    el('btn-collect').classList.add('btn--active');
+    el('btn-collect').textContent = 'Placing record\u2026';
+    if (state.map) state.map.getContainer().style.cursor = 'crosshair';
+  }
+
+  function stopCollect() {
+    state.collecting = false;
+    el('gis-collect-panel').style.display = 'none';
+    el('btn-collect').classList.remove('btn--active');
+    el('btn-collect').textContent = '+ Add observation';
+    if (state.map) state.map.getContainer().style.cursor = '';
+  }
+
+  function placePin(latlng) {
+    el('cf-lat').value = latlng.lat.toFixed(4);
+    el('cf-lon').value = latlng.lng.toFixed(4);
+    el('collect-step').textContent = 'Step 2 \u2014 complete the record and store it';
+    el('cf-date').focus();
+    if (state.map) state.map.getContainer().style.cursor = '';
+  }
+
+  function validateCollect() {
+    var ok = true;
+    function mark(id, valid) {
+      var field = el(id).closest('.field');
+      if (field) field.classList.toggle('field--invalid', !valid);
+      if (!valid) ok = false;
+    }
+    var lat = parseFloat(el('cf-lat').value);
+    var lon = parseFloat(el('cf-lon').value);
+    var date = el('cf-date').value;
+    mark('cf-species', !!el('cf-species').value);
+    mark('cf-lat', !isNaN(lat) && lat >= -90 && lat <= 90);
+    mark('cf-lon', !isNaN(lon) && lon >= -180 && lon <= 180);
+    mark('cf-date', !!date && !isNaN(Date.parse(date)));
+    if (!ok) {
+      showNotice('err', 'Please complete the highlighted fields before storing the record.');
+      return false;
+    }
+    return true;
+  }
+
+  function showNotice(kind, msg) {
+    var box = el('gis-notice');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'gis-notice';
+      box.style.marginBottom = '12px';
+      var body = el('gis-collect-panel').querySelector('.panel__body');
+      body.insertBefore(box, body.firstChild);
+    }
+    box.className = 'notice notice--' + kind;
+    box.textContent = msg;
+    box.style.display = 'block';
+  }
+
+  function submitCollect(e) {
+    e.preventDefault();
+    if (!window.API.signedIn()) {
+      showNotice('warn', 'Sign in with your researcher account to store an observation.');
+      el('collect-auth').style.display = '';
+      el('ca-user').focus();
+      return;
+    }
+    if (!validateCollect()) return;
+    var btn = el('collect-submit');
+    btn.disabled = true;
+    btn.textContent = 'Storing\u2026';
+
+    var media = el('cf-media').files[0];
+    var payload = {
+      species: el('cf-species').value,
+      lat: parseFloat(el('cf-lat').value),
+      lon: parseFloat(el('cf-lon').value),
+      observed_at: el('cf-date').value,
+      individuals: parseInt(el('cf-count').value, 10) || 1,
+      notes: el('cf-notes').value.trim(),
+      media_type: media ? (media.type.indexOf('image') === 0 ? 'photo' : 'audio') : '',
+      media_filename: media ? media.name : '',
+      source: 'Platform submission',
+      count_confirmed: el('cf-confirmed').checked
+    };
+
+    window.API.createObservation(payload).then(function (r) {
+      btn.disabled = false;
+      btn.textContent = 'Store observation';
+      showNotice('ok', 'Observation stored in the platform database (record #' +
+        (r.observation ? r.observation.id : '?') + '). It now appears on the map.');
+      el('cf-notes').value = '';
+      el('cf-media').value = '';
+      stopCollect();
+      return loadRecords();
+    }).catch(function (err) {
+      btn.disabled = false;
+      btn.textContent = 'Store observation';
+      showNotice('err', 'The record could not be stored: ' + err.message);
+    });
+  }
+
+  /* --------------------------------------------------------------- filters */
+  function initFilters() {
+    el('gis-search').addEventListener('input', function () {
+      state.filter.q = el('gis-search').value.trim();
+      render();
+    });
+    el('gis-region').addEventListener('change', function () {
+      state.filter.region = el('gis-region').value; render();
+    });
+    el('gis-species').addEventListener('change', function () {
+      var v = el('gis-species').value;
+      Object.keys(state.filter.species).forEach(function (k) { delete state.filter.species[k]; });
+      if (v) state.filter.species[v] = true;
+      buildSpeciesList();
+      render();
+    });
+    el('gis-from').addEventListener('change', function () {
+      state.filter.from = el('gis-from').value; render();
+    });
+    el('gis-to').addEventListener('change', function () {
+      state.filter.to = el('gis-to').value; render();
+    });
+    el('gis-all').addEventListener('click', function () {
+      state.filter.species = {};
+      buildSpeciesList();
+      render();
+    });
+  }
+
+  function initMap() {
+    state.map = L.map('map', { scrollWheelZoom: true }).setView([2, 60], 3);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18, attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(state.map);
+    state.markerLayer = L.layerGroup().addTo(state.map);
+
+    state.map.on('click', function (e) {
+      if (state.collecting) placePin(e.latlng);
+    });
+
+    el('btn-collect').addEventListener('click', function () {
+      if (state.collecting) stopCollect(); else startCollect();
+    });
+    el('collect-cancel').addEventListener('click', stopCollect);
+    el('collect-form').addEventListener('submit', submitCollect);
+
+    el('ca-login').addEventListener('click', function () {
+      var btn = el('ca-login');
+      btn.disabled = true;
+      btn.textContent = 'Signing in\u2026';
+      window.API.login(el('ca-user').value.trim(), el('ca-pass').value)
+        .then(function () {
+          btn.disabled = false;
+          btn.textContent = 'Sign in';
+          el('collect-auth').style.display = 'none';
+          showNotice('ok', 'Signed in. Submit the observation to store it.');
+          if (window.SHELL) window.SHELL.paintUser();
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          btn.textContent = 'Sign in';
+          showNotice('err', 'Sign-in failed: ' + err.message +
+            '. The demonstration account is researcher / researcher.');
+        });
+    });
+
+    el('btn-fit').addEventListener('click', fitAll);
+    el('map-fit').addEventListener('click', fitAll);
+    el('map-recenter').addEventListener('click', function () {
+      state.map.setView([2, 60], 3);
+    });
+    el('gis-detail-close').addEventListener('click', function () {
+      el('gis-detail-panel').style.display = 'none';
+    });
+  }
+
+  function fitAll() {
+    var list = visibleRecords();
+    if (!list.length || !state.map) return;
+    var bounds = L.latLngBounds(list.map(function (r) { return [r.lat, r.lon]; }));
+    state.map.fitBounds(bounds, { padding: [30, 30], maxZoom: 7 });
+  }
+
+  /* ------------------------------------------------------------------ init */
+  document.addEventListener('DOMContentLoaded', function () {
+    initMap();
+    initFilters();
+
+    // species options for the collection form
+    var sel = el('cf-species');
+    sel.innerHTML = '<option value="">Select a species</option>' +
+      ['Humpback whale', 'Spinner dolphin', 'Blue whale', 'Fin whale',
+       'Killer whale', 'Bottlenose dolphin'].map(function (s) {
+        return '<option value="' + s + '">' + s + '</option>';
+      }).join('');
+
+    loadRecords();
+  });
 })();

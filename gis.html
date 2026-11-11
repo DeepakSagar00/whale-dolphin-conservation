@@ -3,179 +3,208 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GIS Marine Explorer | Whale &amp; Dolphin Conservation</title>
-<meta name="description" content="Interactive map of whale and dolphin sighting records from OBIS, with species, region and date filtering.">
+<title>GIS Marine Map &middot; WhaleAI Conservation</title>
+<meta name="description" content="Interactive GIS map of whale and dolphin observations with species, region and date filtering, record details and an on-map observation submission workflow.">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/style.css?vf37a5b0d">
+<link rel="stylesheet" href="css/style.css?v2d0abb10">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 </head>
 <body>
-<header class="site-header">
-  <div class="container">
-    <a class="brand" href="index.html">
-      <span class="brand__mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Whale and Dolphin Conservation">
-  <path d="M8 30c0-5.4 4.4-9.8 10-9.8 3.3 0 6.2 1.6 8 4.1 1.8-2.5 4.7-4.1 8-4.1 5.6 0 10 4.4 10 9.8 0 2.6-2 4.6-4.6 4.6H12.6A4.6 4.6 0 0 1 8 30Z" fill="#ffffff" opacity=".95"/>
-  <path d="M8 30 2.5 23.5 5 30l-2.5 6.5Z" fill="#ffffff" opacity=".95"/>
-  <circle cx="31.5" cy="27.5" r="1.6" fill="#17a2b8"/>
-  <path d="M14 20.5c1.6-4.4 5.4-7.5 10-7.5 3.6 0 6.9 1.9 8.8 4.8-2.1-.8-4.4-1.2-6.8-1.2-4.6 0-8.8 1.6-12 3.9Z" fill="#2dd4bf"/>
-  <path d="M24.5 13c4.6 0 8.6 1.2 12.6 3.4" stroke="#2dd4bf" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+<div class="app">
+<header class="topbar">
+  <button class="nav__toggle sidebar-toggle" id="sidebar-toggle" aria-label="Toggle navigation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  <a class="topbar__brand" href="index.html">
+    <span class="topbar__mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Whale and Dolphin Conservation">
+  <path d="M8 30c0-5.4 4.4-9.8 10-9.8 3.3 0 6.2 1.6 8 4.1 1.8-2.5 4.7-4.1 8-4.1 5.6 0 10 4.4 10 9.8 0 2.6-2 4.6-4.6 4.6H12.6A4.6 4.6 0 0 1 8 30Z" fill="#ffffff"/>
+  <path d="M8 30 2.5 23.5 5 30l-2.5 6.5Z" fill="#ffffff"/>
+  <circle cx="31.5" cy="27.5" r="1.6" fill="#12a8b8"/>
+  <path d="M14 20.5c1.6-4.4 5.4-7.5 10-7.5 3.6 0 6.9 1.9 8.8 4.8-2.1-.8-4.4-1.2-6.8-1.2-4.6 0-8.8 1.6-12 3.9Z" fill="#35d6c4"/>
+  <path d="M24.5 13c4.6 0 8.6 1.2 12.6 3.4" stroke="#35d6c4" stroke-width="1.8" stroke-linecap="round" fill="none"/>
 </svg></span>
-      <span class="brand__name">WhaleAI Conservation<small>Marine Intelligence Platform</small></span>
+    <span class="topbar__name">WhaleAI&nbsp;Conservation</span>
+  </a>
+  <span class="topbar__sep"></span>
+  <div class="topbar__search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm9 16-4.5-4.5"/></svg>
+    <input type="search" id="global-search" placeholder="Search species, pages and observations&hellip;" aria-label="Search">
+  </div>
+  <div class="topbar__right">
+    <span class="conn" id="conn-status"><i></i><span>checking</span></span>
+    <a class="topbar__user" id="user-chip" href="dashboard.html">
+      <span class="topbar__avatar" id="user-initial">R</span>
+      <span id="user-name">Researcher</span>
     </a>
-    <button class="nav__toggle" aria-label="Toggle navigation" aria-expanded="false"><span></span><span></span><span></span></button>
-    <nav class="nav" id="primary-nav">
-      <a href="index.html">Home</a>
-      <a href="about.html">About</a>
-      <a href="species.html">Species</a>
-      <a href="conservation.html">Conservation</a>
-      <div class="nav__drop">
-        <button class="nav__dropbtn">Research <span class="nav__caret">&#9662;</span></button>
-        <div class="nav__menu">
-          <a href="research.html">Research &amp; Insights</a>
-          <a href="bioacoustics.html">Marine Bioacoustics</a>
-          <a href="gis.html">GIS Marine Explorer</a>
-          <a href="ai.html">AI Conservation</a>
-          <a href="identify.html">Species Identification</a>
-        </div>
-      </div>
-      <a href="about.html#contact">Contact</a>
-      <a href="dashboard.html" class="btn btn--primary btn--sm nav__cta">Get Started</a>
-    </nav>
   </div>
 </header>
-<main>
-<section class="page-hero">
-  <div class="container">
-    <nav class="breadcrumbs"><a href="index.html">Home</a><span>Research</span><span>GIS Marine Explorer</span></nav>
-    <h1>GIS Marine Explorer</h1>
-    <p>An interactive map of marine species occurrence. Filter by species, region and date to explore where whales and dolphins have been recorded.</p>
-  </div>
-</section>
 
-<section class="section section--tight">
-  <div class="container">
-    <div class="grid" style="grid-template-columns:300px 1fr;gap:22px;align-items:start">
-      <aside class="layer-panel">
-        <h3>Filters</h3>
-        <div class="field">
-          <label for="gis-species">Species</label>
-          <select id="gis-species">
-            <option value="">All recorded species</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="gis-region">Region</label>
-          <select id="gis-region">
-            <option value="">All regions</option>
-            <option value="Indian Ocean">Indian Ocean</option>
-            <option value="Arabian Sea">Arabian Sea</option>
-            <option value="Bay of Bengal">Bay of Bengal</option>
-            <option value="Southern Ocean">Southern Ocean</option>
-            <option value="Atlantic">Atlantic</option>
-            <option value="Pacific">Pacific</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="gis-from">From year</label>
-          <select id="gis-from"><option value="">Any</option></select>
-        </div>
-        <div class="field">
-          <label for="gis-to">To year</label>
-          <select id="gis-to"><option value="">Any</option></select>
-        </div>
-        <button class="btn btn--outline btn--sm" id="gis-reset" type="button">Reset filters</button>
-        <h3 class="mt-4">Layers</h3>
-        <label class="layer-option"><input type="checkbox" id="lyr-humpback" checked> Humpback whale</label>
-        <label class="layer-option"><input type="checkbox" id="lyr-spinner" checked> Spinner dolphin</label>
-        <label class="layer-option"><input type="checkbox" id="lyr-heat"> Sightings density</label>
-        <p class="muted mt-3" style="font-size:.84rem" id="gis-count"></p>
-      </aside>
-      <div>
-        <div class="map-wrap">
-          <div id="map"></div>
-          <div class="map-legend">
-            <h4>Legend</h4>
-            <div><i style="background:#1b6ca8"></i> Humpback whale</div>
-            <div><i style="background:#17a2b8"></i> Spinner dolphin</div>
-            <div><i style="background:#c0392b"></i> Selected record</div>
-          </div>
-        </div>
-      </div>
-    </div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__group"><div class="sidebar__label">Platform</div><a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg><span>Overview</span></a><a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg><span>Dashboard</span></a></div><div class="sidebar__group"><div class="sidebar__label">Observe</div><a href="gis.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6Zm0 0v15m6-12v15"/></svg><span>GIS Marine Map</span></a><a href="observations.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm0 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm9 9-3.5-3.5"/></svg><span>Observations</span></a></div><div class="sidebar__group"><div class="sidebar__label">Analyse</div><a href="identify.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v1a3 3 0 0 0-1 5.8V15a3 3 0 0 0 2 2.8V19a2 2 0 0 0 4 0v-1.2a3 3 0 0 0 2-2.8v-3.2A3 3 0 0 0 15 6V5a3 3 0 0 0-3-3ZM9 12h6v3H9z"/></svg><span>AI Identification</span></a><a href="bioacoustics.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c2.5-4 5-4 7.5 0S15 16 17.5 12 20 8 22 12"/></svg><span>Bioacoustics</span></a><a href="analytics.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Conservation Analytics</span></a></div><div class="sidebar__group"><div class="sidebar__label">Reference</div><a href="species.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-7-2.5-7-6 0-4 4-8 9-9 .8 3.5 2.5 4 5 4.5C21 11 20 15 16 18c-1 1.5-2.5 2-4 3Z"/></svg><span>Species Directory</span></a><a href="research.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm9 1.5V9h4.5M8 13h8M8 17h5"/></svg><span>Research</span></a><a href="conservation.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v7c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V5Z"/></svg><span>Conservation</span></a></div><div class="sidebar__group"><div class="sidebar__label">About</div><a href="about.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Zm0-14v.5m0 3.5v6"/></svg><span>About & Contact</span></a></div>
+  <div class="sidebar__foot">
+    Capstone ASAC-CP-141<br>
+    Whale &amp; Dolphin Conservation Platform
   </div>
-</section>
+</aside>
+<div class="sidebar-scrim" id="sidebar-scrim"></div>
 
-<section class="section section--tight section--white">
-  <div class="container">
-    <div class="section-head reveal">
-      <span class="eyebrow">Records</span>
-      <h2>Matching sighting records</h2>
-      <p>Click a marker on the map or a row below to inspect the record.</p>
-    </div>
+<div class="main">
+<main class="content ">
+<div class="pagehead">
+  <div class="pagehead__title">
+    <nav class="crumbs"><span>Observe</span><span>GIS Marine Map</span></nav>
+    <h1>GIS Marine Map</h1>
+    <p>The operational centre of the platform. Every observation is plotted by position; filter by species, region and date, open a marker for its full record, or submit a new observation directly on the map.</p>
+  </div>
+  <div class="pagehead__actions"><button class="btn btn--primary" id="btn-collect">+ Add observation</button><button class="btn btn--ghost" id="btn-fit">Fit all records</button></div>
+</div>
+
+<div class="toolbar">
+  <input type="search" id="gis-search" placeholder="Filter by species or location&hellip;" aria-label="Filter records">
+  <select id="gis-region" aria-label="Region">
+    <option value="">All regions</option>
+    <option value="Indian Ocean">Indian Ocean</option>
+    <option value="Arabian Sea">Arabian Sea</option>
+    <option value="Bay of Bengal">Bay of Bengal</option>
+    <option value="Southern Ocean">Southern Ocean</option>
+    <option value="Atlantic">Atlantic</option>
+    <option value="Pacific">Pacific</option>
+  </select>
+  <select id="gis-species" aria-label="Species"><option value="">All species</option></select>
+  <select id="gis-from" aria-label="From year"><option value="">From: any year</option></select>
+  <select id="gis-to" aria-label="To year"><option value="">To: any year</option></select>
+  <span class="count" id="gis-count">loading&hellip;</span>
+</div>
+
+<div class="grid grid--map">
+  <div class="sidepanel">
     <div class="panel">
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Species</th><th>Latitude</th><th>Longitude</th><th>Date</th><th>Individuals</th></tr></thead>
-          <tbody id="gis-table"></tbody>
-        </table>
+      <div class="panel__head">
+        <h3>Species layers</h3>
+        <button class="btn btn--quiet btn--sm" id="gis-all">All</button>
+      </div>
+      <div class="panel__body"><div class="filterlist" id="gis-species-list"></div></div>
+    </div>
+
+    <div class="panel" id="gis-detail-panel" style="display:none">
+      <div class="panel__head">
+        <div><h3 id="gis-detail-title">Record</h3><p class="sub" id="gis-detail-sub"></p></div>
+        <button class="btn btn--quiet btn--sm" id="gis-detail-close">&times;</button>
+      </div>
+      <div class="panel__body"><div class="detailcard" id="gis-detail"></div></div>
+    </div>
+
+    <div class="panel" id="gis-collect-panel" style="display:none">
+      <div class="panel__head">
+        <div><h3>New observation</h3><p class="sub" id="collect-step">Step 1 &mdash; click the map to place the record</p></div>
+        <button class="btn btn--quiet btn--sm" id="collect-cancel">&times;</button>
+      </div>
+      <div class="panel__body">
+        <form id="collect-form" novalidate>
+          <div class="field">
+            <label for="cf-species">Species <span class="req">*</span></label>
+            <select id="cf-species"></select>
+            <div class="err">Select the species that was observed.</div>
+          </div>
+          <div class="formrow">
+            <div class="field">
+              <label for="cf-lat">Latitude <span class="req">*</span></label>
+              <input type="number" id="cf-lat" step="0.0001" min="-90" max="90" placeholder="-19.3750">
+              <div class="err">Latitude between -90 and 90 is required.</div>
+            </div>
+            <div class="field">
+              <label for="cf-lon">Longitude <span class="req">*</span></label>
+              <input type="number" id="cf-lon" step="0.0001" min="-180" max="180" placeholder="49.1250">
+              <div class="err">Longitude between -180 and 180 is required.</div>
+            </div>
+          </div>
+          <div class="formrow">
+            <div class="field">
+              <label for="cf-date">Date observed <span class="req">*</span></label>
+              <input type="date" id="cf-date">
+              <div class="err">A valid date is required.</div>
+            </div>
+            <div class="field">
+              <label for="cf-count">Individuals</label>
+              <input type="number" id="cf-count" min="1" max="5000" value="1">
+            </div>
+          </div>
+          <div class="field">
+            <label for="cf-notes">Notes</label>
+            <textarea id="cf-notes" rows="3" placeholder="Behaviour, group size, conditions, how the record was made&hellip;"></textarea>
+          </div>
+          <div class="field">
+            <label for="cf-media">Photograph or recording (optional)</label>
+            <input type="file" id="cf-media" accept="image/*,audio/*">
+            <div class="field__hint">The file name is stored with the record. File content is not uploaded.</div>
+          </div>
+          <label class="filterrow" style="padding-left:0">
+            <input type="checkbox" id="cf-confirmed" checked>
+            <span>Count is independently verified</span>
+          </label>
+          <div id="collect-auth" class="panel" style="display:none;margin-top:12px">
+            <div class="panel__body">
+              <h3>Researcher sign-in</h3>
+              <p class="small muted" style="margin:4px 0 10px">Sign in to store observations
+                against your account.</p>
+              <div class="formrow">
+                <div class="field" style="margin:0">
+                  <label for="ca-user">Username</label>
+                  <input type="text" id="ca-user" value="researcher">
+                </div>
+                <div class="field" style="margin:0">
+                  <label for="ca-pass">Password</label>
+                  <input type="password" id="ca-pass" value="researcher">
+                </div>
+              </div>
+              <button class="btn btn--primary btn--sm mt-2" id="ca-login" type="button">Sign in</button>
+              <p class="field__hint mt-2">Demonstration account: researcher / researcher</p>
+            </div>
+          </div>
+          <button class="btn btn--primary btn--block mt-3" type="submit" id="collect-submit">Store observation</button>
+          <p class="field__hint mt-2">Records are written to the platform PostgreSQL database and appear
+             on the map immediately.</p>
+        </form>
       </div>
     </div>
   </div>
-</section>
+
+  <div>
+    <div class="mapframe">
+      <div id="map"></div>
+      <div class="maptools">
+        <button class="btn btn--ghost btn--sm" id="map-recenter" title="Recentre">Recentre</button>
+        <button class="btn btn--ghost btn--sm" id="map-fit" title="Fit all records">Fit</button>
+      </div>
+      <div class="maplegend">
+        <h4>Legend</h4>
+        <div><i style="background:#1b80c4"></i> Humpback whale</div>
+        <div><i style="background:#12a8b8"></i> Spinner dolphin</div>
+        <div><i style="background:#35d6c4"></i> Platform submission</div>
+        <div><i style="background:#c0392b"></i> Selected record</div>
+      </div>
+    </div>
+    <div class="panel mt-3">
+      <div class="panel__head">
+        <div><h3>Matching records</h3><p class="sub" id="gis-table-sub">Click a row to open the record on the map</p></div>
+      </div>
+      <div class="panel__body panel__body--flush">
+        <div class="tablewrap" style="max-height:340px;overflow-y:auto">
+          <table>
+            <thead><tr><th>Species</th><th>Date</th><th>Latitude</th><th>Longitude</th><th class="num">Count</th><th>Source</th></tr></thead>
+            <tbody id="gis-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </main>
-<footer class="site-footer">
-  <div class="container">
-    <div class="cols">
-      <div>
-        <div class="brand">
-          <span class="brand__mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Whale and Dolphin Conservation">
-  <path d="M8 30c0-5.4 4.4-9.8 10-9.8 3.3 0 6.2 1.6 8 4.1 1.8-2.5 4.7-4.1 8-4.1 5.6 0 10 4.4 10 9.8 0 2.6-2 4.6-4.6 4.6H12.6A4.6 4.6 0 0 1 8 30Z" fill="#ffffff" opacity=".95"/>
-  <path d="M8 30 2.5 23.5 5 30l-2.5 6.5Z" fill="#ffffff" opacity=".95"/>
-  <circle cx="31.5" cy="27.5" r="1.6" fill="#17a2b8"/>
-  <path d="M14 20.5c1.6-4.4 5.4-7.5 10-7.5 3.6 0 6.9 1.9 8.8 4.8-2.1-.8-4.4-1.2-6.8-1.2-4.6 0-8.8 1.6-12 3.9Z" fill="#2dd4bf"/>
-  <path d="M24.5 13c4.6 0 8.6 1.2 12.6 3.4" stroke="#2dd4bf" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-</svg></span>
-          <span class="brand__name">WhaleAI Conservation<small>Marine Intelligence Platform</small></span>
-        </div>
-        <p>An open marine conservation platform that turns underwater sound, ocean observation and vessel traffic into decisions that protect whales and dolphins.</p>
-        <div class="socials mt-2">
-          <a href="https://github.com/DeepakSagar00/whale-dolphin-conservation" title="GitHub" aria-label="GitHub">GH</a>
-          <a href="mailto:research@whaleai.org" title="Email" aria-label="Email">@</a>
-          <a href="research.html" title="Research" aria-label="Research">R</a>
-        </div>
-      </div>
-      <div>
-        <h4>About</h4>
-        <a href="about.html">About the Platform</a>
-        <a href="about.html#mission">Mission &amp; Vision</a>
-        <a href="about.html#technology">Technology</a>
-        <a href="about.html#team">Team</a>
-      </div>
-      <div>
-        <h4>Contact</h4>
-        <a href="about.html#contact">Contact form</a>
-        <a href="mailto:research@whaleai.org">research@whaleai.org</a>
-        <a href="about.html#contact">Research enquiries</a>
-        <a href="about.html#contact">Data contributions</a>
-      </div>
-      <div>
-        <h4>Research</h4>
-        <a href="research.html">Research &amp; Insights</a>
-        <a href="gis.html">GIS Marine Explorer</a>
-        <a href="ai.html">AI Conservation</a>
-        <a href="species.html">Species Explorer</a>
-        <a href="privacy.html">Privacy Policy</a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>&copy; <span data-year>2026</span> WhaleAI Conservation &middot; Capstone ASAC-CP-141</span>
-      <span>Sighting records sourced from the Ocean Biodiversity Information System (OBIS)</span>
-    </div>
-  </div>
-</footer>
-<script src="js/data.js?vf37a5b0d"></script>
-<script src="js/main.js?vf37a5b0d"></script>
-<script src="vendor/leaflet/leaflet.js?vf37a5b0d"></script>
-<script src="js/gis.js?vf37a5b0d"></script>
+</div>
+</div>
+<script src="js/data.js?v2d0abb10"></script>
+<script src="js/main.js?v2d0abb10"></script>
+<script src="vendor/leaflet/leaflet.js?v2d0abb10"></script>
+<script src="js/config.js?v2d0abb10"></script>
+<script src="js/api.js?v2d0abb10"></script>
+<script src="js/gis.js?v2d0abb10"></script>
 </body>
 </html>

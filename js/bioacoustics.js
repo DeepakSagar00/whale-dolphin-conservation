@@ -299,11 +299,11 @@
 
     decode(file).then(function (audio) {
       state.audioBuffer = audio;
-      el('file-duration').textContent = audio.duration.toFixed(2) + ' s';
-      el('file-rate').textContent = (audio.sampleRate / 1000).toFixed(1) + ' kHz';
-      el('file-channels').textContent = audio.numberOfChannels === 1 ? 'mono' : 'stereo';
+      setText('file-duration', audio.duration.toFixed(2) + ' s');
+      setText('file-rate', (audio.sampleRate / 1000).toFixed(1) + ' kHz');
+      setText('file-channels', audio.numberOfChannels === 1 ? 'mono' : 'stereo');
     }).catch(function () {
-      el('file-duration').textContent = 'unknown';
+      setText('file-duration', 'unknown');
     });
 
     runAnalysis(file);

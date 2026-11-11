@@ -137,6 +137,27 @@
     });
   }
 
+  /* ---------------- identification history ---------------- */
+  function loadHistory() {
+    var host = el('id-history');
+    if (!host) return;
+    if (!window.API || !window.API.isOnline()) {
+      host.innerHTML = '<tr><td colspan="4" class="empty">Sign in to load your identification history.</td></tr>';
+      return;
+    }
+    window.API.imageHistory().then(function (r) {
+      var list = (r && r.predictions) || [];
+      host.innerHTML = list.map(function (p) {
+        return '<tr><td>' + esc(p.filename || 'image') + '</td>' +
+          '<td>' + esc(p.predicted_species || '-') + '</td>' +
+          '<td class="num">' + (p.confidence == null ? '&ndash;' : Math.round(p.confidence * 100) + '%') + '</td>' +
+          '<td>' + esc(String(p.created_at || '').slice(0, 19).replace('T', ' ')) + '</td></tr>';
+      }).join('') || '<tr><td colspan="4" class="empty">No identifications recorded yet.</td></tr>';
+    }).catch(function () {
+      host.innerHTML = '<tr><td colspan="4" class="empty">Sign in to load your identification history.</td></tr>';
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     var drop = el('id-drop');
     var input = el('id-file');
@@ -152,12 +173,30 @@
       if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
     });
 
+    var toggle = el('id-history-toggle');
+    var panel = el('id-history-panel');
+    if (toggle && panel) {
+      toggle.addEventListener('click', function () {
+        var open = panel.style.display === 'none' || !panel.style.display;
+        panel.style.display = open ? '' : 'none';
+        toggle.textContent = open ? 'Hide history' : 'Show history';
+        if (open) loadHistory();
+      });
+    }
+    var close = el('id-history-close');
+    if (close && panel) {
+      close.addEventListener('click', function () {
+        panel.style.display = 'none';
+        if (toggle) toggle.textContent = 'Show history';
+      });
+    }
+
     renderReference();
 
     window.API.health().then(function (h) {
-      if (h) setApiStatus(true, 'The classifier and the reference image set run on the server.');
-      else setApiStatus(false, 'The server could not be reached, so image identification is ' +
-        'currently unavailable. The rest of the platform still works.');
+      if (h) setApiStatus(true, 'The classifier and the reference image set run on the platform API.');
+      else setApiStatus(false, 'The API could not be reached, so image identification is currently ' +
+        'unavailable. The rest of the platform still works.');
     });
   });
 })();

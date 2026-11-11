@@ -1,280 +1,160 @@
-/* Researcher Dashboard - sign-in gate, statistics and charts */
+/* Professional Dashboard — live database aggregates, alerts, status and activity. */
 (function () {
   'use strict';
-  var D = window.SITE_DATA;
-  var esc = window.SITE.escapeHtml;
 
-  /* ------------------------------------------------------------- sign-in gate */
-  var gate = document.getElementById('dash-gate');
-  var app = document.getElementById('dash-app');
-  var form = document.getElementById('dash-login');
-  var error = document.getElementById('dl-error');
-  var tabs = document.querySelectorAll('#dash-tabs button');
+  var el = function (id) { return document.getElementById(id); };
+  var esc = function (t) {
+    return String(t == null ? '' : t)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
 
-  function showError(msg) {
-    error.textContent = msg;
-    error.style.display = 'block';
+  var STATUS_CLASS = { EN: 'badge--en', VU: 'badge--vu', LC: 'badge--lc', DD: 'badge--dd' };
+  var SEVERITY_CLASS = { fatal: 'badge--en', severe: 'badge--vu', minor: 'badge--grey' };
+
+  var charts = [];
+
+  function paint(d) {
+    var t = d.totals || {};
+
+    var kpis = [
+      { k: 'Total observations', v: (t.sightings || 0).toLocaleString('en-US'), c: '', m: 'sighting records in the database' },
+      { k: 'Species detected', v: t.species || 0, c: 'kpi--teal', m: 'in the species reference table' },
+      { k: 'Recorded incidents', v: (t.incidents || 0).toLocaleString('en-US'), c: 'kpi--amber', m: 'mortality events with cause and severity' },
+      { k: 'Ocean cells modelled', v: (t.grid_cells || 0).toLocaleString('en-US'), c: 'kpi--green', m: 'scored for conservation risk' }
+    ];
+    el('dash-kpis').innerHTML = kpis.map(function (k) {
+      return '<div class="kpi ' + k.c + '"><div class="kpi__label">' + esc(k.k) + '</div>' +
+        '<div class="kpi__value">' + esc(String(k.v)) + '</div>' +
+        '<div class="kpi__meta">' + esc(k.m) + '</div></div>';
+    }).join('');
+
+    /* alerts */
+    var alerts = d.alerts || [];
+    el('dash-alerts').innerHTML = alerts.map(function (a) {
+      var icon = a.level === 'critical' ? '&#9888;' : (a.level === 'warning' ? '&#9889;' : '&#8505;');
+      return '<div class="alert alert--' + esc(a.level) + '">' +
+        '<span class="alert__icon">' + icon + '</span>' +
+        '<div class="alert__body"><h4>' + esc(a.title) + '</h4>' +
+        '<p>' + esc(a.detail) + '</p>' +
+        '<div class="src">Source: ' + esc(a.source) + '</div></div></div>';
+    }).join('') || '<div class="empty">No alerts raised from the current record.</div>';
+
+    /* conservation status */
+    el('dash-species').innerHTML = (d.species || []).map(function (s) {
+      return '<tr><td><strong>' + esc(s.common_name) + '</strong><br>' +
+        '<span class="small muted" style="font-style:italic">' + esc(s.scientific_name) + '</span></td>' +
+        '<td class="num"><span class="badge ' + (STATUS_CLASS[s.iucn_category] || 'badge--dd') + '">' +
+        esc(s.iucn_category || 'n/a') + '</span></td></tr>';
+    }).join('') || '<tr><td class="empty">No species records.</td></tr>';
+
+    /* recent sightings */
+    el('dash-recent').innerHTML = (d.recent_sightings || []).map(function (s) {
+      return '<tr><td>' + esc(s.common_name || 'Unidentified') + '</td>' +
+        '<td>' + esc(s.event_date || '') + '</td>' +
+        '<td class="mono">' + Number(s.lat).toFixed(3) + '</td>' +
+        '<td class="mono">' + Number(s.lon).toFixed(3) + '</td>' +
+        '<td class="num">' + (s.individual_count == null ? '&ndash;' : s.individual_count) + '</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="empty">No records.</td></tr>';
+
+    /* recent incidents */
+    el('dash-incidents').innerHTML = (d.recent_incidents || []).map(function (i) {
+      return '<tr><td>' + esc(i.event_date || '') + '</td>' +
+        '<td>' + esc(i.common_name || 'Unidentified') + '</td>' +
+        '<td>' + esc(i.cause || 'unspecified') + '</td>' +
+        '<td><span class="badge ' + (SEVERITY_CLASS[i.severity] || 'badge--grey') + '">' +
+        esc(i.severity || 'n/a') + '</span></td>' +
+        '<td class="mono">' + Number(i.lat).toFixed(3) + '</td>' +
+        '<td class="mono">' + Number(i.lon).toFixed(3) + '</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="empty">No incidents recorded.</td></tr>';
+
+    drawCharts(d);
+  }
+
+  function drawCharts(d) {
+    if (typeof Chart === 'undefined') return;
+    charts.forEach(function (c) { c.destroy(); });
+    charts = [];
+
+    Chart.defaults.font.family = '"Segoe UI", system-ui, sans-serif';
+    Chart.defaults.color = '#6a8299';
+    var TEAL = '#12a8b8', OCEAN = '#1b80c4', NAVY = '#102c47';
+
+    var sev = d.incidents_by_severity || [];
+    charts.push(new Chart(el('chart-severity'), {
+      type: 'doughnut',
+      data: {
+        labels: sev.map(function (r) { return r.severity; }),
+        datasets: [{
+          data: sev.map(function (r) { return r.c; }),
+          backgroundColor: ['#c0392b', '#d68910', '#92a7ba'], borderWidth: 0
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '58%',
+                 plugins: { legend: { position: 'right' } } }
+    }));
+
+    var cause = d.incidents_by_cause || [];
+    charts.push(new Chart(el('chart-cause'), {
+      type: 'bar',
+      data: {
+        labels: cause.map(function (r) { return r.cause; }),
+        datasets: [{
+          label: 'Incidents', data: cause.map(function (r) { return r.c; }),
+          backgroundColor: OCEAN, borderRadius: 3, maxBarThickness: 22
+        }]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, grid: { color: '#eef3f7' } }, y: { grid: { display: false } } }
+      }
+    }));
   }
 
   function openDashboard() {
-    gate.classList.add('hidden');
-    app.classList.remove('hidden');
-    buildDashboard();
-    loadHistory();
+    el('dash-gate').classList.add('hidden');
+    el('dash-app').classList.remove('hidden');
+    window.API.dashboardOverview().then(paint).catch(function (err) {
+      el('dash-kpis').innerHTML = '<div class="kpi kpi--red"><div class="kpi__label">API unavailable</div>' +
+        '<div class="kpi__value">-</div><div class="kpi__meta">' + esc(err.message) + '</div></div>';
+    });
   }
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    error.style.display = 'none';
-    var username = document.getElementById('dl-email').value.trim();
-    var pass = document.getElementById('dl-pass').value;
-    if (!username || !pass) { showError('Enter your username and password.'); return; }
-    if (!window.API) { showError('The API client is not available.'); return; }
-    var btn = form.querySelector('button[type=submit]');
-    btn.disabled = true;
-    btn.textContent = 'Signing in…';
-    window.API.login(username, pass).then(function (data) {
-      btn.disabled = false;
-      btn.textContent = 'Open dashboard';
-      openDashboard();
-    }).catch(function (err) {
-      btn.disabled = false;
-      btn.textContent = 'Open dashboard';
-      showError('Sign-in failed: ' + (err.message || 'invalid credentials') +
-        '. The demonstration account is researcher / researcher.');
+  document.addEventListener('DOMContentLoaded', function () {
+    var form = el('dash-login');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var err = el('dl-error');
+      err.style.display = 'none';
+      var username = el('dl-email').value.trim();
+      var pass = el('dl-pass').value;
+      if (!username || !pass) {
+        err.textContent = 'Enter your username and password.';
+        err.style.display = 'block';
+        return;
+      }
+      if (!window.API) {
+        err.textContent = 'The API client is not available.';
+        err.style.display = 'block';
+        return;
+      }
+      var btn = form.querySelector('button[type=submit]');
+      btn.disabled = true;
+      btn.textContent = 'Signing in\u2026';
+      window.API.login(username, pass).then(function () {
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+        if (window.SHELL) window.SHELL.paintUser();
+        openDashboard();
+      }).catch(function (e2) {
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+        err.textContent = 'Sign-in failed: ' + (e2.message || 'invalid credentials') +
+          '. The demonstration account is researcher / researcher.';
+        err.style.display = 'block';
+      });
     });
   });
-
-  /* load the signed-in researcher's analysis history */
-  function loadHistory() {
-    if (!window.API || !window.API.isOnline()) return;
-    window.API.audioHistory().then(function (r) {
-      var host = document.getElementById('dash-audio-history');
-      if (!host) return;
-      if (!r || !r.analyses || !r.analyses.length) {
-        host.innerHTML = '<tr><td colspan="5">No audio analyses recorded yet. ' +
-          'Run an analysis on the Marine Bioacoustics page and it will appear here.</td></tr>';
-        return;
-      }
-      host.innerHTML = r.analyses.slice(0, 10).map(function (a) {
-        return '<tr><td>' + esc(a.filename || 'recording') + '</td>' +
-          '<td>' + esc(a.detected_species || '-') + '</td>' +
-          '<td>' + (a.confidence != null ? Math.round(a.confidence * 100) + '%' : '-') + '</td>' +
-          '<td>' + esc(a.call_pattern || '-') + '</td>' +
-          '<td>' + esc(String(a.created_at || '').slice(0, 19).replace('T', ' ')) + '</td></tr>';
-      }).join('');
-    }).catch(function () { /* signed out or unavailable */ });
-
-    window.API.imageHistory().then(function (r) {
-      var host = document.getElementById('dash-image-history');
-      if (!host) return;
-      if (!r || !r.predictions || !r.predictions.length) {
-        host.innerHTML = '<tr><td colspan="4">No image identifications recorded yet.</td></tr>';
-        return;
-      }
-      host.innerHTML = r.predictions.slice(0, 10).map(function (p) {
-        return '<tr><td>' + esc(p.filename || 'image') + '</td>' +
-          '<td>' + esc(p.predicted_species || '-') + '</td>' +
-          '<td>' + (p.confidence != null ? Math.round(p.confidence * 100) + '%' : '-') + '</td>' +
-          '<td>' + esc(String(p.created_at || '').slice(0, 19).replace('T', ' ')) + '</td></tr>';
-      }).join('');
-    }).catch(function () { /* signed out or unavailable */ });
-  }
-
-  /* ---------------------------------------------------------------- charts */
-  var built = false;
-
-  function regionOf(lat, lon) {
-    if (lat < -35) return 'Southern Ocean';
-    if (lon < -30) return 'Atlantic';
-    if (lon > 130) return 'Pacific';
-    if (lat >= 5 && lat <= 25 && lon >= 50 && lon <= 78) return 'Arabian Sea';
-    if (lat >= 5 && lat <= 23 && lon >= 79 && lon <= 98) return 'Bay of Bengal';
-    return 'Indian Ocean';
-  }
-
-  function buildDashboard() {
-    if (built) return;
-    built = true;
-
-    var sightings = D.sightings;
-    var species = D.species;
-    var m = D.metrics;
-
-    /* stats - prefer the live database, fall back to the published sample set */
-    var live = null;
-
-    function paintStats(source) {
-      var stats = [
-        { k: 'Sighting records', v: sightings.length.toLocaleString('en-US'),
-          d: source + (live && live.incidents ? ' · ' + live.incidents.toLocaleString('en-US') + ' incidents' : '') },
-        { k: 'Species monitored', v: species.length, d: 'Whales and dolphins in the directory' },
-        { k: 'Risk model accuracy', v: m.accuracy + '%', d: 'Weighted F1 ' + m.f1 + ' on held-out cells' },
-        { k: 'Modelled grid cells',
-          v: (live && live.grid_cells ? live.grid_cells : D.gridRisk.total).toLocaleString('en-US'),
-          d: 'Ocean cells scored for risk' }
-      ];
-      document.getElementById('dash-stats').innerHTML = stats.map(function (s) {
-        return '<div class="stat"><div class="k">' + esc(s.k) + '</div>' +
-          '<div class="v">' + esc(String(s.v)) + '</div>' +
-          '<div class="d">' + esc(s.d) + '</div></div>';
-      }).join('');
-    }
-
-    paintStats('Published dataset');
-
-    if (typeof Chart === 'undefined') {
-      document.querySelectorAll('.chart-box').forEach(function (b) {
-        b.innerHTML = '<p class="muted">Chart library unavailable offline.</p>';
-      });
-      return;
-    }
-
-    Chart.defaults.font.family = '"Segoe UI", system-ui, sans-serif';
-    Chart.defaults.color = '#647d90';
-    var TEAL = '#17a2b8', OCEAN = '#1b6ca8', NAVY = '#10304f';
-
-    /* records by year */
-    var byYear = {};
-    sightings.forEach(function (s) {
-      var y = parseInt(s.date.slice(0, 4), 10);
-      if (!isNaN(y) && y > 1950) byYear[y] = (byYear[y] || 0) + 1;
-    });
-    var years = Object.keys(byYear).map(Number).sort(function (a, b) { return a - b; });
-    new Chart(document.getElementById('chart-years'), {
-      type: 'bar',
-      data: {
-        labels: years,
-        datasets: [{
-          label: 'Records',
-          data: years.map(function (y) { return byYear[y]; }),
-          backgroundColor: TEAL, borderRadius: 4, maxBarThickness: 26
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, grid: { color: '#eef3f7' } }, x: { grid: { display: false } } }
-      }
-    });
-
-    /* conservation status */
-    var statusCount = {};
-    species.forEach(function (s) { statusCount[s.statusLabel] = (statusCount[s.statusLabel] || 0) + 1; });
-    new Chart(document.getElementById('chart-status'), {
-      type: 'doughnut',
-      data: {
-        labels: Object.keys(statusCount),
-        datasets: [{
-          data: Object.keys(statusCount).map(function (k) { return statusCount[k]; }),
-          backgroundColor: ['#c0392b', '#d68910', '#1e8449', '#647d90'],
-          borderWidth: 0
-        }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '58%', plugins: { legend: { position: 'right' } } }
-    });
-
-    /* feature importance */
-    var fi = m.featureImportance;
-    var fiKeys = Object.keys(fi).sort(function (a, b) { return fi[b] - fi[a]; }).slice(0, 8);
-    new Chart(document.getElementById('chart-features'), {
-      type: 'bar',
-      data: {
-        labels: fiKeys.map(function (k) { return k.replace(/_/g, ' '); }),
-        datasets: [{
-          label: 'Importance',
-          data: fiKeys.map(function (k) { return +(fi[k] * 100).toFixed(1); }),
-          backgroundColor: OCEAN, borderRadius: 4, maxBarThickness: 18
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { beginAtZero: true, grid: { color: '#eef3f7' }, ticks: { callback: function (v) { return v + '%'; } } },
-          y: { grid: { display: false } }
-        }
-      }
-    });
-
-    /* risk classes */
-    new Chart(document.getElementById('chart-risk'), {
-      type: 'doughnut',
-      data: {
-        labels: Object.keys(D.gridRisk).filter(function (k) { return k !== 'total'; }),
-        datasets: [{
-          data: Object.keys(D.gridRisk).filter(function (k) { return k !== 'total'; })
-            .map(function (k) { return D.gridRisk[k]; }),
-          backgroundColor: ['#1e8449', '#d68910', '#c0392b', '#8e0a13'],
-          borderWidth: 0
-        }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '58%', plugins: { legend: { position: 'right' } } }
-    });
-
-    /* distribution by region */
-    var byRegion = {};
-    sightings.forEach(function (s) {
-      var r = regionOf(s.lat, s.lon);
-      byRegion[r] = (byRegion[r] || 0) + 1;
-    });
-    new Chart(document.getElementById('chart-region'), {
-      type: 'bar',
-      data: {
-        labels: Object.keys(byRegion),
-        datasets: [{
-          label: 'Records',
-          data: Object.keys(byRegion).map(function (k) { return byRegion[k]; }),
-          backgroundColor: NAVY, borderRadius: 4, maxBarThickness: 40
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, grid: { color: '#eef3f7' } }, x: { grid: { display: false } } }
-      }
-    });
-
-    /* recent records */
-    function paintTable() {
-      var recent = sightings.slice().sort(function (a, b) {
-        return String(a.date) < String(b.date) ? 1 : -1;
-      }).slice(0, 12);
-      document.getElementById('dash-table').innerHTML = recent.map(function (s) {
-        return '<tr><td>' + esc(s.species) + '</td><td>' + Number(s.lat).toFixed(3) + '</td>' +
-          '<td>' + Number(s.lon).toFixed(3) + '</td><td>' + esc(s.date) + '</td>' +
-          '<td>' + (s.count == null ? '&ndash;' : s.count) + '</td></tr>';
-      }).join('');
-    }
-    paintTable();
-
-    /* pull the live figures from the platform database when the API is up */
-    if (window.API) {
-      window.API.health().then(function () {
-        if (!window.API.isOnline()) return null;
-        return window.API.publicStats().then(function (s) {
-          live = s;
-          return window.API.publicSightings({ limit: 2000 }).then(function (r) {
-            if (r && r.sightings && r.sightings.length) {
-              sightings = r.sightings.map(function (x) {
-                return {
-                  lat: x.lat, lon: x.lon,
-                  date: x.event_date || '',
-                  count: x.individual_count,
-                  species: x.common_name || 'Unknown'
-                };
-              });
-            }
-          });
-        });
-      }).catch(function () { /* keep the published sample set */ }).then(function () {
-        if (!live) return;
-        paintStats('Live database');
-        paintTable();
-        var note = document.getElementById('dash-source');
-        if (note) note.textContent = 'Connected to the platform PostgreSQL database.';
-      });
-    }
-  }
 })();

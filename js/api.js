@@ -91,6 +91,7 @@
 
     token: token,
     currentUser: currentUser,
+    signedIn: function () { return !!token(); },
     logout: function () { setToken(null); },
 
     /* Probe the API so the UI can show an honest connection banner. */
@@ -149,6 +150,29 @@
     },
 
     simulatorSpecies: function () { return request('/api/simulator/species'); },
+
+    /* ---------------- observations (GIS collection workflow) ---------------- */
+    listObservations: function (params) {
+      var q = [];
+      if (params) {
+        if (params.limit) q.push('limit=' + params.limit);
+        if (params.species) q.push('species=' + encodeURIComponent(params.species));
+        if (params.region) q.push('region=' + encodeURIComponent(params.region));
+        if (params.date_from) q.push('date_from=' + params.date_from);
+        if (params.date_to) q.push('date_to=' + params.date_to);
+      }
+      return request('/api/observations' + (q.length ? '?' + q.join('&') : ''));
+    },
+
+    createObservation: function (payload) {
+      return json('/api/observations', 'POST', payload);
+    },
+
+    deleteObservation: function (id) {
+      return request('/api/observations/' + id, { method: 'DELETE' });
+    },
+
+    dashboardOverview: function () { return request('/api/dashboard/overview'); },
 
     /* ---------------- public reference data ---------------- */
     speciesDirectory: function () { return request('/api/species/directory'); },

@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from app import db, security
 from app.recommendations import generate_recommendations
 from app.routes_analysis import router as analysis_router
+from app.routes_observations import router as observations_router
 
 ROOT = Path(__file__).resolve().parent.parent.parent  # project root
 GEO_DIR = ROOT / "data" / "geojson"
@@ -23,6 +24,7 @@ ML_DIR = ROOT / "backend" / "ml"
 app = FastAPI(title="Whale & Dolphin Conservation Platform", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.include_router(analysis_router)
+app.include_router(observations_router)
 
 # ---------- load ML model once at startup --------------------------------
 with open(ML_DIR / "model.pkl", "rb") as f:

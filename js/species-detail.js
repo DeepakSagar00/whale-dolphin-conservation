@@ -5,22 +5,22 @@
   var root = document.getElementById('spd-root');
   var s = window.SITE.speciesById(id);
 
-  function esc(t) { return window.SITE.escapeHtml(t); }
+  function esc(t) {
+    return String(t == null ? '' : t)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
 
   if (!s) {
-    root.innerHTML = '<div class="panel"><h3>Species not found</h3>' +
-      '<p class="muted mt-2">The requested species record does not exist in the directory.</p>' +
-      '<a class="btn btn--outline mt-3" href="species.html">Back to Species Explorer</a></div>';
+    root.innerHTML = '<div class="panel"><div class="panel__body">' +
+      '<h3>Species not found</h3><p class="muted small mt-2">The requested species record does ' +
+      'not exist in the directory.</p>' +
+      '<a class="btn btn--ghost btn--sm mt-3" href="species.html">Back to the directory</a>' +
+      '</div></div>';
     return;
   }
 
-  document.title = s.name + ' | Whale & Dolphin Conservation';
-
-  var crumbs = document.querySelector('.breadcrumbs');
-  if (crumbs) {
-    crumbs.innerHTML = '<a href="index.html">Home</a><span>/</span>' +
-      '<a href="species.html">Species Explorer</a><span>/</span>' + esc(s.name);
-  }
+  document.title = s.name + ' | WhaleAI Conservation';
 
   var facts = [
     ['Scientific name', s.latin],
@@ -32,39 +32,46 @@
     ['Diet', s.diet],
     ['Habitat', s.habitat],
     ['Distribution', s.distribution]
-  ].map(function (f) {
-    return '<div><dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd></div>';
-  }).join('');
+  ];
 
   root.innerHTML =
-    '<nav class="breadcrumbs" style="color:var(--ink-400)">' +
-      '<a href="index.html">Home</a><span>/</span>' +
-      '<a href="species.html">Species Explorer</a><span>/</span>' + esc(s.name) +
-    '</nav>' +
-    '<div class="detail">' +
-      '<div>' +
-        '<div class="detail__media"><img src="assets/species/' + s.id + '.svg" alt="' + esc(s.name) + '"></div>' +
+    '<div class="grid grid--2">' +
+      '<div class="panel"><div class="panel__body">' +
+        '<img src="assets/species/' + s.id + '.svg" alt="' + esc(s.name) + '" ' +
+          'style="width:100%;border-radius:8px;background:linear-gradient(160deg,#e8f4f9,#d3e9f2)">' +
         '<div class="pill-row mt-3">' +
           '<span class="badge badge--info">' + esc(s.type) + '</span>' +
           '<span class="badge ' + window.SITE.statusClass(s.status) + '">' + esc(s.statusLabel) + '</span>' +
         '</div>' +
-        '<h1 class="mt-3">' + esc(s.name) + '</h1>' +
-        '<p class="muted" style="font-style:italic">' + esc(s.latin) + '</p>' +
-        '<p class="lead mt-2">' + esc(s.description) + '</p>' +
-        '<div class="mt-4">' +
-          '<a class="btn btn--primary" href="gis.html">View on the map</a> ' +
-          '<a class="btn btn--outline" href="ai.html">Identify a recording</a>' +
+        '<h2 class="mt-3">' + esc(s.name) + '</h2>' +
+        '<p class="muted small" style="font-style:italic">' + esc(s.latin) + '</p>' +
+        '<p class="mt-2 muted">' + esc(s.description) + '</p>' +
+        '<div class="mt-3" style="display:flex;gap:8px;flex-wrap:wrap">' +
+          '<a class="btn btn--primary btn--sm" href="gis.html">View on the GIS map</a>' +
+          '<a class="btn btn--ghost btn--sm" href="bioacoustics.html">Analyse its calls</a>' +
+          '<a class="btn btn--ghost btn--sm" href="identify.html">Identify a photograph</a>' +
         '</div>' +
-      '</div>' +
-      '<div>' +
-        '<h3>Species record</h3>' +
-        '<dl class="fact-list">' + facts + '</dl>' +
-        '<h3 class="mt-4">Principal threats</h3>' +
-        '<ul class="muted mt-2" style="padding-left:20px">' +
-          s.threats.map(function (t) { return '<li style="margin-bottom:8px">' + esc(t) + '</li>'; }).join('') +
-        '</ul>' +
-        '<div class="divider"></div>' +
-        '<a class="btn btn--outline btn--sm" href="species.html">&#8592; Back to directory</a>' +
+      '</div></div>' +
+
+      '<div class="grid" style="gap:14px;align-content:start">' +
+        '<div class="panel"><div class="panel__head"><h3>Species record</h3></div>' +
+          '<div class="panel__body"><dl class="fact-list">' +
+          facts.map(function (f) {
+            return '<div><dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd></div>';
+          }).join('') + '</dl></div></div>' +
+
+        '<div class="panel"><div class="panel__head"><h3>Principal threats</h3></div>' +
+          '<div class="panel__body"><ul class="small muted" style="padding-left:18px">' +
+          s.threats.map(function (t) {
+            return '<li style="margin-bottom:7px">' + esc(t) + '</li>';
+          }).join('') + '</ul></div></div>' +
+
+        '<div class="panel"><div class="panel__head"><h3>Related modules</h3></div>' +
+          '<div class="panel__body"><div style="display:flex;gap:8px;flex-wrap:wrap">' +
+            '<a class="btn btn--ghost btn--sm" href="analytics.html">Conservation analytics</a>' +
+            '<a class="btn btn--ghost btn--sm" href="conservation.html">Conservation strategies</a>' +
+            '<a class="btn btn--ghost btn--sm" href="species.html">All species</a>' +
+          '</div></div></div>' +
       '</div>' +
     '</div>';
 })();
