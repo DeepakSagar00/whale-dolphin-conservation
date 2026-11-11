@@ -1,11 +1,11 @@
-/* Application configuration.
+﻿/* Application configuration.
    Single place to point the front end at the deployed API.
 
    The API base can be overridden at runtime with a query parameter, e.g.
    index.html?api=https://my-api.example.com
    which is remembered in localStorage. */
 (function () {
-  var DEFAULT_API = 'https://terry-hampshire-declare-focusing.trycloudflare.com';
+  var DEFAULT_API = 'https://asn-assisted-assembly-trials.trycloudflare.com';
   var KEY = 'wd_api_base';
 
   var params = new URLSearchParams(location.search);
@@ -28,3 +28,4 @@
     demoUser: { username: 'researcher', password: 'researcher' }
   };
 })();
+
