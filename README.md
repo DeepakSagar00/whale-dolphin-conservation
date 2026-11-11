@@ -4,96 +4,123 @@ An intelligent marine conservation platform for capstone **ASAC-CP-141**:
 *Listen → Recognise → Predict → Warn*.
 
 - **Front end (live):** https://deepaksagar00.github.io/whale-dolphin-conservation/
-- **API source:** `api/` in this repository (FastAPI, deployable to Vercel or Render)
+- **API source:** `api/` in this repository (FastAPI + PostgreSQL, deployable to Vercel or Render)
 - **Deployment guide:** [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ---
 
-## Architecture
+## Application structure
+
+A fixed top bar and a grouped navigation rail wrap every page, so the interface
+reads as one application rather than a set of linked documents.
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│  Static front end (GitHub Pages)                                   │
-│  index · species · bioacoustics · identify · gis · research ·      │
-│  conservation · dashboard · about · privacy                         │
-└──────────────┬─────────────────────────────────────────────────────┘
-               │  fetch  (js/api.js)
-┌──────────────▼─────────────────────────────────────────────────────┐
-│  FastAPI service  (api/ → Vercel serverless or Render)             │
-│  ├─ /api/audio/analyze      real DSP + species classification      │
-│  ├─ /api/image/identify     photographic species classification     │
-│  ├─ /api/simulator/*        research-grounded communication model   │
-│  ├─ /api/risk/*             grid risk prediction (Random Forest)    │
-│  ├─ /api/species/directory  species reference                      │
-│  └─ /api/public/*           sightings, statistics, model status     │
-└──────────────┬─────────────────────────────────────────────────────┘
-               │  psycopg2
-┌──────────────▼─────────────────────────────────────────────────────┐
-│  PostgreSQL — database/schema.sql                                  │
-│  sightings · grid_cells · incidents · species · protected_areas ·  │
-│  corridors · risk_predictions · recommendations · recordings ·      │
-│  audio_analyses · image_predictions · simulations · users           │
-└────────────────────────────────────────────────────────────────────┘
+│ Top bar: brand · global search · API status · signed-in researcher   │
+├──────────────┬─────────────────────────────────────────────────────┤
+│ Platform     │  Page header: breadcrumb · title · actions           │
+│  Overview    │  ─────────────────────────────────────────────────  │
+│  Dashboard   │                                                     │
+│ Observe      │  Content                                           │
+│  GIS Map     │                                                     │
+│  Observations│                                                     │
+│ Analyse      │                                                     │
+│  AI ID       │                                                     │
+│  Bioacoustics│                                                     │
+│  Analytics   │                                                     │
+│ Reference    │                                                     │
+│  Species     │                                                     │
+│  Research    │                                                     │
+│  Conservation│                                                     │
+│ About        │                                                     │
+└──────────────┴─────────────────────────────────────────────────────┘
 ```
-
-## Pages
 
 | Page | Purpose |
 |---|---|
-| `index.html` | Minimal homepage — mission, featured species, conservation initiatives |
-| `species.html` | Species Explorer — search, group/status filters, species directory |
-| `species-detail.html?id=<id>` | Individual species record — habitat, distribution, status, threats |
-| `bioacoustics.html` | **Marine Bioacoustics** — upload, waveform, spectrogram, pattern analysis, explorer, simulator |
-| `identify.html` | **AI Species Identification** — photograph upload, classification, confidence |
-| `gis.html` | **GIS Marine Explorer** — interactive Leaflet map of real OBIS records, filters, layers |
-| `ai.html` | Audio species classifier running in the browser (same model as the server) |
-| `research.html` | Research & Insights — datasets, methodology, findings, publications, downloads |
-| `conservation.html` | Threats, conservation strategies, priority species |
-| `dashboard.html` | **Researcher Dashboard** — real API sign-in, live database statistics, analysis history |
-| `about.html` | Mission, vision, technology, team, contact form |
-| `privacy.html` | Privacy policy |
+| `index.html` | Overview — the problem, how data is collected, how AI and GIS help |
+| `dashboard.html` | Professional dashboard — totals, status, recent activity, alerts, charts |
+| `gis.html` | **GIS Marine Map** — plot every observation, filter, inspect, and submit on the map |
+| `observations.html` | Observation management — validated submission form and stored-records table |
+| `identify.html` | AI species identification — photo upload, confidence, identification history |
+| `bioacoustics.html` | Marine bioacoustics — waveform, spectrogram, pattern analysis, simulator |
+| `analytics.html` | Conservation analytics — six charts plus the status table |
+| `species.html` / `species-detail.html` | Species directory and individual species records |
+| `research.html` | Datasets, methodology, findings, references, downloads |
+| `conservation.html` | Threats, strategies and priority species |
+| `about.html` / `privacy.html` | Mission, technology, team, contact, privacy |
+
+## The GIS observation workflow
+
+1. **Visualise** — 411 verified OBIS records plus any platform submissions are
+   plotted with species, region, year and text filters, and a live layer list.
+2. **Inspect** — clicking a marker or a table row opens the full record:
+   position, date, individuals, region, source and verification state.
+3. **Collect** — *Add observation* switches the map into capture mode. Clicking
+   the map drops a pin; the form is validated in the browser and again on the
+   server; the record is written to PostgreSQL and appears on the map at once.
+
+## Backend
+
+FastAPI + PostgreSQL with JWT authentication, CORS, upload validation and
+graceful degradation when the database is unreachable.
+
+| Area | Endpoints |
+|---|---|
+| Bioacoustics | `POST /api/audio/analyze`, `POST /api/audio/classify`, `GET /api/audio/history` |
+| Image ID | `POST /api/image/identify`, `GET /api/image/history` |
+| Simulator | `POST /api/simulator/conversation`, `GET /api/simulator/species` |
+| Observations | `POST /api/observations`, `GET /api/observations`, `DELETE /api/observations/{id}` |
+| Dashboard | `GET /api/dashboard/overview` |
+| Reference | `GET /api/species/directory`, `GET /api/public/stats`, `GET /api/public/sightings` |
+| Risk | `GET /api/risk/predict`, `GET /api/risk/summary`, `GET /api/recommendations` |
+| Auth | `POST /api/auth/login`, `POST /api/auth/register` |
+
+### Database tables
+
+`users` · `species` · `sightings` · `grid_cells` · `incidents` · `protected_areas` ·
+`corridors` · `risk_predictions` · `recommendations` · `recordings` · `audio_analyses` ·
+`image_predictions` · `simulations` · **`observations`** (GIS collection)
 
 ## Models
 
-| Model | Technique | Artefact | Accuracy |
+| Model | Technique | Artefact | Measured accuracy |
 |---|---|---|---|
-| Audio species classifier | Logistic regression over 64 mel-spaced bands (mean + std per 5 s window) | `api/ml/audio_model.json` | separates all 6 classes on held-out reference recordings |
-| Image species classifier | HOG + colour histogram → multinomial logistic regression | `api/ml/image_model.joblib` | 73% held-out (whales 0.82–0.94 F1; dolphins weaker) |
+| Audio species classifier | Logistic regression over 64 mel-spaced bands (mean + std per 5 s window) | `api/ml/audio_model.json` | separates all 6 classes; 12/12 on held-out reference recordings |
+| Image species classifier | HOG + colour histogram → multinomial logistic regression | `api/ml/image_model.joblib` | 73% held-out (whales 0.82–0.94 F1, dolphins weaker) |
 | Grid risk model | Random Forest over ocean grid features | `api/ml/model.pkl` | 99.3% accuracy, 0.993 weighted F1 |
 
-The audio classifier's feature extraction is implemented identically in
+The audio feature extraction is implemented identically in
 `website/js/dsp.js` (browser), `backend/app/bioacoustics.py` (server) and
 `website/train_web_model.py` (training), so all three agree exactly.
 
-## Acoustic pattern analysis
+## Resilience
 
-The platform labels a recording's acoustic *structure* — never a translation of meaning:
+- The front end bundles a snapshot of the platform database, so the map,
+  dashboard and analytics still render real figures if the API is unreachable.
+- Audio analysis falls back to the same trained model running in the browser.
+- The API client fails over between known endpoints and times out quickly.
 
-| Pattern | Measured signature |
-|---|---|
-| Low-frequency call | dominant frequency < 200 Hz, narrow band (blue and fin whale) |
-| Tonal whistle | band < 200 Hz wide, tonality > 60, above 400 Hz (dolphin) |
-| Harmonic / song structure | moderate band, repeated phrases (humpback, killer whale) |
-| Broadband click train | high pulse rate, wide band |
-| Ambient / broadband noise | full-band energy, almost no tonal peak (ship noise) |
+## Running it locally
 
-Every interpretation is labelled as research-based; the semantic content of
-individual calls is not established and the interface says so.
+```powershell
+.\start_platform.ps1        # PostgreSQL + FastAPI + public tunnel, writes the API URL into config.js
+.\stop_platform.ps1         # stop the API and tunnel
+```
 
-## Data provenance
+Or manually:
 
-- **Sighting records** — Ocean Biodiversity Information System (OBIS): 10,000 humpback
-  whale and 1,500 spinner dolphin records in the working dataset; 720 published on the site.
-- **Grid and risk** — 12,856 modelled ocean grid cells from `data/processed/features_grid.csv`.
-- **Incidents** — 6,847 historical mortality records.
-- **Reference photographs** — 378 openly-licensed Wikimedia Commons images.
-- **Reference recordings** — synthesised samples that reproduce each class's spectral signature.
+```bash
+.\start_all.ps1                        # portable PostgreSQL + FastAPI on :8000
+python -m http.server 8080 --directory website
+```
+
+Sign in with `researcher` / `researcher`.
 
 ## Repository layout
 
 ```
 api/               serverless API bundle (app package, models, grid data)
-api/index.py       FastAPI entry point
 css/style.css      design system
 js/                api client · dsp · config · per-page controllers
 assets/species/    species illustrations
@@ -102,17 +129,3 @@ downloads/         published research artefacts
 database/          SQL schema
 scripts/           data pipeline, model training and test scripts
 ```
-
-## Local development
-
-```bash
-# 1. portable PostgreSQL + API
-.\start_all.ps1
-
-# 2. static site
-python -m http.server 8080 --directory website
-
-# 3. open http://127.0.0.1:8080
-```
-
-The front end automatically targets `http://127.0.0.1:8000` when served from localhost.
