@@ -22,10 +22,18 @@
     },
     {
       title: 'Acoustic monitoring archive',
-      body: 'Underwater recordings processed into 5-second windows and 128-band log-mel spectrograms. ' +
+      body: 'Underwater recordings processed into 5-second windows and 64 mel-spaced log-mel bands. ' +
             'The classifier is trained on blue, fin, humpback and killer whale calls, bottlenose dolphin ' +
-            'whistles and ship-noise-only background samples.',
+            'whistles and ship-noise-only background samples, and is stress-tested by mixing vessel ' +
+            'noise back in at 0–20 dB SNR.',
       meta: '6 classes &middot; noise-mixed at 0&ndash;20 dB SNR'
+    },
+    {
+      title: 'Photographic reference set',
+      body: 'Openly-licensed reference photographs retrieved from Wikimedia Commons for each of the six ' +
+            'species, used to train the image classifier with histogram-of-oriented-gradients shape ' +
+            'descriptors and colour statistics.',
+      meta: '378 reference photographs &middot; 6 species'
     },
     {
       title: 'AIS vessel tracks',
@@ -84,6 +92,22 @@
       body: 'Rolling detection rates over 7, 14 and 30 days, combined with day-of-year seasonality, ' +
             'allow the presence model to anticipate whether a species will be present in the following week.',
       stat: '7 / 14 / 30d', statLabel: 'Rate windows'
+    },
+    {
+      title: 'Acoustic classification separates the modelled calls',
+      body: 'The audio classifier identifies blue, fin, humpback and killer whale calls, bottlenose dolphin ' +
+            'whistles and ship-noise-only background. It reproduces its training feature extraction exactly ' +
+            'in the browser and on the server, and separates all six classes on held-out reference ' +
+            'recordings.',
+      stat: '6 / 6', statLabel: 'Classes separated'
+    },
+    {
+      title: 'Photographic identification is reliable for whales, weaker for dolphins',
+      body: 'The image classifier reaches about 73% accuracy on held-out photographs. The baleen whale ' +
+            'classes score between 0.82 and 0.94 F1, while the two dolphin classes are regularly confused ' +
+            'with one another because of their visual similarity. The limitation is reported in the ' +
+            'interface rather than hidden.',
+      stat: '73%', statLabel: 'Held-out accuracy'
     }
   ];
 

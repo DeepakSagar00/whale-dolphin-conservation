@@ -9,32 +9,77 @@
   var app = document.getElementById('dash-app');
   var form = document.getElementById('dash-login');
   var error = document.getElementById('dl-error');
+  var tabs = document.querySelectorAll('#dash-tabs button');
 
-  var DEMO_EMAIL = 'researcher@whaleai.org';
-  var DEMO_PASS = 'whale2026';
+  function showError(msg) {
+    error.textContent = msg;
+    error.style.display = 'block';
+  }
 
   function openDashboard() {
     gate.classList.add('hidden');
     app.classList.remove('hidden');
-    try { sessionStorage.setItem('wd_session', '1'); } catch (e) { /* private mode */ }
     buildDashboard();
+    loadHistory();
   }
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    var email = document.getElementById('dl-email').value.trim().toLowerCase();
+    error.style.display = 'none';
+    var username = document.getElementById('dl-email').value.trim();
     var pass = document.getElementById('dl-pass').value;
-    if (email === DEMO_EMAIL && pass === DEMO_PASS) {
-      error.style.display = 'none';
+    if (!username || !pass) { showError('Enter your username and password.'); return; }
+    if (!window.API) { showError('The API client is not available.'); return; }
+    var btn = form.querySelector('button[type=submit]');
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+    window.API.login(username, pass).then(function (data) {
+      btn.disabled = false;
+      btn.textContent = 'Open dashboard';
       openDashboard();
-    } else {
-      error.style.display = 'block';
-    }
+    }).catch(function (err) {
+      btn.disabled = false;
+      btn.textContent = 'Open dashboard';
+      showError('Sign-in failed: ' + (err.message || 'invalid credentials') +
+        '. The demonstration account is researcher / researcher.');
+    });
   });
 
-  var restored = false;
-  try { restored = sessionStorage.getItem('wd_session') === '1'; } catch (e) { restored = false; }
-  if (restored) openDashboard();
+  /* load the signed-in researcher's analysis history */
+  function loadHistory() {
+    if (!window.API || !window.API.isOnline()) return;
+    window.API.audioHistory().then(function (r) {
+      var host = document.getElementById('dash-audio-history');
+      if (!host) return;
+      if (!r || !r.analyses || !r.analyses.length) {
+        host.innerHTML = '<tr><td colspan="5">No audio analyses recorded yet. ' +
+          'Run an analysis on the Marine Bioacoustics page and it will appear here.</td></tr>';
+        return;
+      }
+      host.innerHTML = r.analyses.slice(0, 10).map(function (a) {
+        return '<tr><td>' + esc(a.filename || 'recording') + '</td>' +
+          '<td>' + esc(a.detected_species || '-') + '</td>' +
+          '<td>' + (a.confidence != null ? Math.round(a.confidence * 100) + '%' : '-') + '</td>' +
+          '<td>' + esc(a.call_pattern || '-') + '</td>' +
+          '<td>' + esc(String(a.created_at || '').slice(0, 19).replace('T', ' ')) + '</td></tr>';
+      }).join('');
+    }).catch(function () { /* signed out or unavailable */ });
+
+    window.API.imageHistory().then(function (r) {
+      var host = document.getElementById('dash-image-history');
+      if (!host) return;
+      if (!r || !r.predictions || !r.predictions.length) {
+        host.innerHTML = '<tr><td colspan="4">No image identifications recorded yet.</td></tr>';
+        return;
+      }
+      host.innerHTML = r.predictions.slice(0, 10).map(function (p) {
+        return '<tr><td>' + esc(p.filename || 'image') + '</td>' +
+          '<td>' + esc(p.predicted_species || '-') + '</td>' +
+          '<td>' + (p.confidence != null ? Math.round(p.confidence * 100) + '%' : '-') + '</td>' +
+          '<td>' + esc(String(p.created_at || '').slice(0, 19).replace('T', ' ')) + '</td></tr>';
+      }).join('');
+    }).catch(function () { /* signed out or unavailable */ });
+  }
 
   /* ---------------------------------------------------------------- charts */
   var built = false;
@@ -56,18 +101,27 @@
     var species = D.species;
     var m = D.metrics;
 
-    /* stats */
-    var stats = [
-      { k: 'Sighting records', v: sightings.length.toLocaleString('en-US'), d: 'Published in the explorer dataset' },
-      { k: 'Species monitored', v: species.length, d: 'Whales and dolphins in the directory' },
-      { k: 'Risk model accuracy', v: m.accuracy + '%', d: 'Weighted F1 ' + m.f1 + ' on held-out cells' },
-      { k: 'Modelled grid cells', v: D.gridRisk.total.toLocaleString('en-US'), d: 'Ocean cells scored for risk' }
-    ];
-    document.getElementById('dash-stats').innerHTML = stats.map(function (s) {
-      return '<div class="stat"><div class="k">' + esc(s.k) + '</div>' +
-        '<div class="v">' + esc(String(s.v)) + '</div>' +
-        '<div class="d">' + esc(s.d) + '</div></div>';
-    }).join('');
+    /* stats - prefer the live database, fall back to the published sample set */
+    var live = null;
+
+    function paintStats(source) {
+      var stats = [
+        { k: 'Sighting records', v: sightings.length.toLocaleString('en-US'),
+          d: source + (live && live.incidents ? ' · ' + live.incidents.toLocaleString('en-US') + ' incidents' : '') },
+        { k: 'Species monitored', v: species.length, d: 'Whales and dolphins in the directory' },
+        { k: 'Risk model accuracy', v: m.accuracy + '%', d: 'Weighted F1 ' + m.f1 + ' on held-out cells' },
+        { k: 'Modelled grid cells',
+          v: (live && live.grid_cells ? live.grid_cells : D.gridRisk.total).toLocaleString('en-US'),
+          d: 'Ocean cells scored for risk' }
+      ];
+      document.getElementById('dash-stats').innerHTML = stats.map(function (s) {
+        return '<div class="stat"><div class="k">' + esc(s.k) + '</div>' +
+          '<div class="v">' + esc(String(s.v)) + '</div>' +
+          '<div class="d">' + esc(s.d) + '</div></div>';
+      }).join('');
+    }
+
+    paintStats('Published dataset');
 
     if (typeof Chart === 'undefined') {
       document.querySelectorAll('.chart-box').forEach(function (b) {
@@ -183,11 +237,44 @@
     });
 
     /* recent records */
-    var recent = sightings.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 12);
-    document.getElementById('dash-table').innerHTML = recent.map(function (s) {
-      return '<tr><td>' + esc(s.species) + '</td><td>' + s.lat.toFixed(3) + '</td>' +
-        '<td>' + s.lon.toFixed(3) + '</td><td>' + esc(s.date) + '</td>' +
-        '<td>' + (s.count == null ? '&ndash;' : s.count) + '</td></tr>';
-    }).join('');
+    function paintTable() {
+      var recent = sightings.slice().sort(function (a, b) {
+        return String(a.date) < String(b.date) ? 1 : -1;
+      }).slice(0, 12);
+      document.getElementById('dash-table').innerHTML = recent.map(function (s) {
+        return '<tr><td>' + esc(s.species) + '</td><td>' + Number(s.lat).toFixed(3) + '</td>' +
+          '<td>' + Number(s.lon).toFixed(3) + '</td><td>' + esc(s.date) + '</td>' +
+          '<td>' + (s.count == null ? '&ndash;' : s.count) + '</td></tr>';
+      }).join('');
+    }
+    paintTable();
+
+    /* pull the live figures from the platform database when the API is up */
+    if (window.API) {
+      window.API.health().then(function () {
+        if (!window.API.isOnline()) return null;
+        return window.API.publicStats().then(function (s) {
+          live = s;
+          return window.API.publicSightings({ limit: 2000 }).then(function (r) {
+            if (r && r.sightings && r.sightings.length) {
+              sightings = r.sightings.map(function (x) {
+                return {
+                  lat: x.lat, lon: x.lon,
+                  date: x.event_date || '',
+                  count: x.individual_count,
+                  species: x.common_name || 'Unknown'
+                };
+              });
+            }
+          });
+        });
+      }).catch(function () { /* keep the published sample set */ }).then(function () {
+        if (!live) return;
+        paintStats('Live database');
+        paintTable();
+        var note = document.getElementById('dash-source');
+        if (note) note.textContent = 'Connected to the platform PostgreSQL database.';
+      });
+    }
   }
 })();

@@ -738,16 +738,17 @@ dash_body = page_hero(
         <p>Sign in to open the analytics dashboard. This is a demonstration build &mdash; credentials are checked in the browser.</p>
         <form id="dash-login" novalidate>
           <div class="field">
-            <label for="dl-email">Email</label>
-            <input type="email" id="dl-email" value="researcher@whaleai.org" required>
+            <label for="dl-email">Username</label>
+            <input type="text" id="dl-email" value="researcher" required>
           </div>
           <div class="field">
-            <label for="dl-pass">Access code</label>
-            <input type="password" id="dl-pass" value="whale2026" required>
+            <label for="dl-pass">Password</label>
+            <input type="password" id="dl-pass" value="researcher" required>
           </div>
           <button class="btn btn--primary" type="submit" style="width:100%">Open dashboard</button>
-          <p class="form-error" id="dl-error">Those credentials were not recognised. Try the demo values shown above.</p>
-          <p class="form-note">Demonstration credentials are pre-filled for review purposes.</p>
+          <p class="form-error" id="dl-error" style="display:none"></p>
+          <p class="form-note">Sign-in uses the platform API. The demonstration account is
+            <strong>researcher / researcher</strong>.</p>
         </form>
       </div>
     </div>
@@ -789,12 +790,35 @@ dash_body = page_hero(
 
       <div class="panel">
         <h3>Sighting records</h3>
-        <p class="sub">Most recent records in the dataset.</p>
+        <p class="sub" id="dash-source">Most recent records in the dataset.</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Species</th><th>Latitude</th><th>Longitude</th><th>Date</th><th>Individuals</th></tr></thead>
             <tbody id="dash-table"></tbody>
           </table>
+        </div>
+      </div>
+
+      <div class="grid grid--2">
+        <div class="panel">
+          <h3>Audio analysis history</h3>
+          <p class="sub">Analyses recorded against your account.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Recording</th><th>Species</th><th>Conf.</th><th>Pattern</th><th>When</th></tr></thead>
+              <tbody id="dash-audio-history"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Species identification history</h3>
+          <p class="sub">Image identifications recorded against your account.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Image</th><th>Species</th><th>Conf.</th><th>When</th></tr></thead>
+              <tbody id="dash-image-history"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -806,7 +830,9 @@ write("dashboard.html", page(
     "Analytics dashboard for marine species statistics, sighting records, distribution insights and conservation status.",
     dash_body,
     extra='<script src="vendor/chart.umd.min.js"></script>',
-    extra_js='<script src="js/dashboard.js"></script>'))
+    extra_js='<script src="js/config.js"></script>\n'
+             '<script src="js/api.js"></script>\n'
+             '<script src="js/dashboard.js"></script>'))
 
 # ================================================================== ABOUT
 about_body = page_hero(
