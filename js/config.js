@@ -5,7 +5,7 @@
    index.html?api=https://my-api.example.com
    which is remembered in localStorage. */
 (function () {
-  var DEFAULT_API = 'https://asn-assisted-assembly-trials.trycloudflare.com';
+  var DEFAULT_API = 'https://edition-scholars-times-dialogue.trycloudflare.com';
   var KEY = 'wd_api_base';
 
   var params = new URLSearchParams(location.search);
@@ -28,4 +28,5 @@
     demoUser: { username: 'researcher', password: 'researcher' }
   };
 })();
+
 
