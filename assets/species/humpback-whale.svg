@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Humpback whale illustration">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d3a5c"/>
+      <stop offset="55%" stop-color="#12557f"/>
+      <stop offset="100%" stop-color="#0a2b46"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3f5f7d"/>
+      <stop offset="100%" stop-color="#20384f"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity=".22"/>
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#sea)"/>
+  <rect width="400" height="300" fill="url(#glow)"/>
+
+  <path d="M 56,150 C 42,141 22,126 8,116 C 21,135 28,145 32,150 C 28,155 21,165 8,184 C 22,174 42,159 56,150 Z" fill="#20384f"/>
+  <path d="M 46,150 C 66,120 118,104 186,102 C 238,100 288,108 326,122 C 344,129 350,140 346,150 C 350,160 344,171 326,178 C 288,192 238,200 186,198 C 118,196 66,180 46,150 Z" fill="url(#body)"/>
+  <path d="M 86,166 C 130,186 200,192 268,180 C 240,194 150,198 96,180 Z" fill="#7893aa" opacity=".5"/>
+  <path d="M 262,187 C 240,206 206,232 168,246 C 186,222 210,200 232,184 Z" fill="#35536e"/>
+  <path d="M 300,185 C 288,214 262,244 232,262 C 252,234 268,208 278,183 Z" fill="#3c5c79"/>
+  <path d="M 238,104 L 256,88 L 262,106 Z" fill="#20384f"/>
+  <g fill="#7e99b0" opacity=".38">
+    <circle cx="120" cy="136" r="4"/><circle cx="146" cy="158" r="3.5"/>
+    <circle cx="186" cy="128" r="3"/><circle cx="214" cy="172" r="2.5"/>
+  </g>
+  <circle cx="322" cy="136" r="3.2" fill="#0a2b46"/>
+</svg>

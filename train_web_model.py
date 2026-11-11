@@ -18,10 +18,27 @@ N_MELS = 64
 CLASSES = ["blue_whale", "fin_whale", "humpback_whale",
            "killer_whale", "bottlenose_dolphin", "background"]
 
-# band split (same as np.array_split on 513 FFT bins)
-NBINS = N_FFT // 2 + 1
-edges = np.linspace(0, NBINS, N_MELS + 1).astype(int)
-BANDS = [[int(edges[i]), int(edges[i + 1])] for i in range(N_MELS)]
+# mel-spaced band edges (proper mel scale gives low-frequency calls the
+# resolution they need to be separated from each other)
+def mel_band_edges(n_mels, sr, nfft, fmin=10.0, fmax=None):
+    import math
+    fmax = fmax or sr / 2.0
+    m_min = 2595.0 * math.log10(1.0 + fmin / 700.0)
+    m_max = 2595.0 * math.log10(1.0 + fmax / 700.0)
+    pts = []
+    for i in range(n_mels + 2):
+        m = m_min + (m_max - m_min) * i / (n_mels + 1)
+        f = 700.0 * (10 ** (m / 2595.0) - 1.0)
+        pts.append(int(round(f * nfft / sr)))
+    edges = []
+    for i in range(n_mels):
+        a = max(0, min(pts[i], pts[i + 1] - 1))
+        b = max(a + 1, min(pts[i + 1], nfft // 2 + 1))
+        edges.append((a, b))
+    return edges
+
+
+BANDS = mel_band_edges(N_MELS, SR, N_FFT)
 
 
 def chirp(f0, f1, dur, sr=SR):

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Bottlenose dolphin illustration">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d3a5c"/>
+      <stop offset="55%" stop-color="#12557f"/>
+      <stop offset="100%" stop-color="#0a2b46"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7e9db5"/>
+      <stop offset="100%" stop-color="#4a6a86"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity=".22"/>
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#sea)"/>
+  <rect width="400" height="300" fill="url(#glow)"/>
+
+  <path d="M 52,150 L 18,120 L 38,150 L 18,180 Z" fill="#4a6a86"/>
+  <path d="M 40,150 C 60,124 108,108 172,106 C 224,104 266,112 300,124
+           C 316,130 322,138 318,148 C 314,158 300,164 284,168
+           C 240,178 180,186 120,182 C 80,178 52,166 40,150 Z" fill="url(#body)"/>
+  <path d="M 300,124 C 318,126 336,132 350,140 C 336,150 316,154 296,152
+           C 306,144 306,132 300,124 Z" fill="#8fb0c6"/>
+  <path d="M 226,110 C 236,92 254,80 268,80 C 254,92 246,102 244,112 Z" fill="#5b7f9e"/>
+  <path d="M 240,178 C 232,194 216,206 204,208 C 218,196 226,186 230,176 Z" fill="#5b7f9e"/>
+  <path d="M 96,166 C 140,180 208,180 258,170 C 220,182 140,186 100,176 Z" fill="#c9dbe6" opacity=".7"/>
+  <circle cx="330" cy="141" r="3" fill="#0a2b46"/>
+</svg>

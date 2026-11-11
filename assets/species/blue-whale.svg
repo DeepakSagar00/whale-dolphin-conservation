@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Blue whale illustration">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d3a5c"/>
+      <stop offset="55%" stop-color="#12557f"/>
+      <stop offset="100%" stop-color="#0a2b46"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5b7f9e"/>
+      <stop offset="100%" stop-color="#2c4a63"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity=".22"/>
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#sea)"/>
+  <rect width="400" height="300" fill="url(#glow)"/>
+
+  <path d="M 56,150 C 42,141 22,126 8,116 C 21,135 28,145 32,150 C 28,155 21,165 8,184 C 22,174 42,159 56,150 Z" fill="#2c4a63"/>
+  <path d="M 46,150 C 66,120 118,104 186,102 C 238,100 288,108 326,122 C 344,129 350,140 346,150 C 350,160 344,171 326,178 C 288,192 238,200 186,198 C 118,196 66,180 46,150 Z" fill="url(#body)"/>
+  <path d="M 86,166 C 130,186 200,192 268,180 C 240,194 150,198 96,180 Z" fill="#7f9db5" opacity=".55"/>
+  <path d="M 268,106 L 280,94 L 284,107 Z" fill="#2c4a63"/>
+  <path d="M 262,186 L 248,212 L 282,190 Z" fill="#3a5c78"/>
+  <g fill="#8fb0c6" opacity=".45">
+    <circle cx="150" cy="140" r="4"/><circle cx="182" cy="162" r="3"/>
+    <circle cx="126" cy="158" r="2.5"/><circle cx="205" cy="132" r="3.5"/>
+    <circle cx="222" cy="168" r="2.5"/><circle cx="100" cy="145" r="2"/>
+    <circle cx="238" cy="146" r="2"/><circle cx="168" cy="176" r="2"/>
+  </g>
+  <circle cx="322" cy="138" r="3.4" fill="#0a2b46"/>
+</svg>
