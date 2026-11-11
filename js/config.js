@@ -5,7 +5,7 @@
    index.html?api=https://my-api.example.com
    which is remembered in localStorage. */
 (function () {
-  var DEFAULT_API = 'https://catch-den-recorders-tap.trycloudflare.com';
+  var DEFAULT_API = 'https://terry-hampshire-declare-focusing.trycloudflare.com';
   var KEY = 'wd_api_base';
 
   var params = new URLSearchParams(location.search);

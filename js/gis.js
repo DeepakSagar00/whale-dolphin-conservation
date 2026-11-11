@@ -40,52 +40,64 @@
   }
 
   /* ------------------------------------------------------------- data load */
+  function mapDb(r) {
+    return {
+      id: r.id,
+      species: r.common_name || 'Unidentified',
+      scientific: r.scientific_name || '',
+      lat: r.lat, lon: r.lon,
+      date: r.event_date || '',
+      count: r.individual_count,
+      source: r.source || 'OBIS',
+      region: regionOf(r.lat, r.lon),
+      year: r.event_date ? parseInt(String(r.event_date).slice(0, 4), 10) : null,
+      kind: 'db'
+    };
+  }
+
   function loadRecords() {
-    return window.API.publicSightings({ limit: 4000 }).then(function (r) {
-      state.records = (r.sightings || []).map(function (s) {
-        return {
-          id: s.id,
-          species: s.common_name || 'Unidentified',
-          scientific: s.scientific_name || '',
-          lat: s.lat, lon: s.lon,
-          date: s.event_date || '',
-          count: s.individual_count,
-          source: s.source || 'OBIS',
-          region: regionOf(s.lat, s.lon),
-          year: s.event_date ? parseInt(String(s.event_date).slice(0, 4), 10) : null,
-          kind: 'db'
-        };
-      });
-      // platform submissions recorded through this workflow
-      return window.API.listObservations({ limit: 2000 }).catch(function () { return null; });
-    }).then(function (obs) {
-      if (obs && obs.observations) {
-        obs.observations.forEach(function (o) {
-          state.records.push({
-            id: 'o' + o.id,
-            obsId: o.id,
-            species: o.common_name,
-            scientific: o.scientific_name || '',
-            lat: o.lat, lon: o.lon,
-            date: o.observed_at,
-            count: o.individuals,
-            source: o.source || 'Platform submission',
-            notes: o.notes,
-            media: o.media_filename,
-            confirmed: o.count_confirmed,
-            region: regionOf(o.lat, o.lon),
-            year: o.observed_at ? parseInt(String(o.observed_at).slice(0, 4), 10) : null,
-            kind: 'submission'
+    var offline = false;
+    return window.API.publicSightings({ limit: 4000 })
+      .then(function (r) { return r.sightings || []; })
+      .catch(function () {
+        // the API is unreachable - fall back to the published database snapshot
+        offline = true;
+        return window.SITE_DATA.dbSightings || [];
+      })
+      .then(function (list) {
+        state.records = list.map(mapDb);
+        if (offline) { buildSpeciesList(); buildYearFilters(); render(); return null; }
+        return window.API.listObservations({ limit: 2000 }).catch(function () { return null; });
+      })
+      .then(function (obs) {
+        if (obs && obs.observations) {
+          obs.observations.forEach(function (o) {
+            state.records.push({
+              id: 'o' + o.id,
+              obsId: o.id,
+              species: o.common_name,
+              scientific: o.scientific_name || '',
+              lat: o.lat, lon: o.lon,
+              date: o.observed_at,
+              count: o.individuals,
+              source: o.source || 'Platform submission',
+              notes: o.notes,
+              media: o.media_filename,
+              confirmed: o.count_confirmed,
+              region: regionOf(o.lat, o.lon),
+              year: o.observed_at ? parseInt(String(o.observed_at).slice(0, 4), 10) : null,
+              kind: 'submission'
+            });
           });
-        });
-      }
-      buildSpeciesList();
-      buildYearFilters();
-      render();
-    }).catch(function (err) {
-      el('gis-count').textContent = 'unable to load records';
-      if (window.SHELL) window.SHELL.setConnection(false, 'API offline');
-    });
+        }
+        buildSpeciesList();
+        buildYearFilters();
+        render();
+      })
+      .catch(function (err) {
+        el('gis-count').textContent = 'unable to load records';
+        if (window.SHELL) window.SHELL.setConnection(false, 'API offline');
+      });
   }
 
   /* -------------------------------------------------------- filter widgets */

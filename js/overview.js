@@ -44,6 +44,11 @@
   document.addEventListener('DOMContentLoaded', function () {
     if (!window.API) return;
     window.API.dashboardOverview().then(renderSnapshot).catch(function () {
+      var snap = window.SITE_DATA.dashboard;
+      if (snap && snap.totals) {
+        renderSnapshot(snap);
+        return;
+      }
       el('hero-stats').innerHTML =
         '<div class="hero__stat"><div class="v">&mdash;</div><div class="k">API not reachable</div></div>';
       el('provenance').innerHTML =

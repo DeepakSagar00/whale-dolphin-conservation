@@ -326,6 +326,7 @@ dash_body = pagehead(
 </div>
 
 <div id="dash-app" class="hidden">
+  <div class="notice notice--warn" id="dash-offline" style="display:none"></div>
   <div class="kpis" id="dash-kpis"></div>
 
   <div class="grid grid--map mt-3">

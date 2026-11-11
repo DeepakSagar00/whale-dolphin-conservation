@@ -112,6 +112,19 @@
   document.addEventListener('DOMContentLoaded', function () {
     if (!window.API) return;
     window.API.dashboardOverview().then(function (d) {
+      render(d);
+    }).catch(function (err) {
+      var snap = window.SITE_DATA.dashboard;
+      if (snap && snap.totals) {
+        render(snap);
+      } else {
+        el('ana-kpis').innerHTML = '<div class="kpi kpi--red"><div class="kpi__label">API unavailable</div>' +
+          '<div class="kpi__value">-</div><div class="kpi__meta">' + esc(err.message) + '</div></div>';
+      }
+    });
+  });
+
+  function render(d) {
       var t = d.totals || {};
       var kpis = [
         { k: 'Sighting records', v: (t.sightings || 0).toLocaleString('en-US'), m: 'observation records', c: '' },
@@ -137,9 +150,5 @@
       }).join('') || '<tr><td colspan="5" class="empty">No species records.</td></tr>';
 
       draw(d);
-    }).catch(function (err) {
-      el('ana-kpis').innerHTML = '<div class="kpi kpi--red"><div class="kpi__label">API unavailable</div>' +
-        '<div class="kpi__value">-</div><div class="kpi__meta">' + esc(err.message) + '</div></div>';
-    });
-  });
+  }
 })();

@@ -1,9 +1,12 @@
 """Generate js/data.js from real project data (OBIS sightings + species info)."""
 import json
-import pandas as pd
+from pathlib import Path
 
-ROOT = r"C:\Users\Deepak Sagar\OneDrive\Desktop\MoveOne\whale-dolphin-conservation"
-OUT = ROOT + r"\website\js\data.js"
+import pandas as pd
+import urllib.request
+
+ROOT = Path(r"C:\Users\Deepak Sagar\OneDrive\Desktop\MoveOne\whale-dolphin-conservation")
+OUT = ROOT / "website" / "js" / "data.js"
 
 # ---- species directory (factual, from public conservation references) ----
 SPECIES = [
@@ -127,16 +130,55 @@ def load_sightings(path, species_id, species_name, n, seed=42):
 
 sightings = []
 sightings += load_sightings(
-    ROOT + r"\data\raw\Megaptera_novaeangliae.csv", "humpback-whale", "Humpback Whale", 420)
+    (ROOT / "data" / "raw" / "Megaptera_novaeangliae.csv"), "humpback-whale", "Humpback Whale", 420)
 sightings += load_sightings(
-    ROOT + r"\data\raw\Stenella_longirostris.csv", "spinner-dolphin", "Spinner Dolphin", 300)
+    (ROOT / "data" / "raw" / "Stenella_longirostris.csv"), "spinner-dolphin", "Spinner Dolphin", 300)
 
 # ---- real model metrics from the project ----
-metrics = json.load(open(ROOT + r"\backend\ml\ml_metrics.json", encoding="utf-8"))
+metrics = json.load(open((ROOT / "backend" / "ml" / "ml_metrics.json"), encoding="utf-8"))
+
+# ---- real sightings exactly as the API returns them (database record) ----
+proc = ROOT / "data" / "processed" / "sightings_clean.csv"
+db_sightings = []
+if proc.exists():
+    import pandas as pd
+    df = pd.read_csv(proc)
+    df = df.dropna(subset=["lat", "lon"])
+    species_map = {"humpback_whale": "Humpback whale", "spinner_dolphin": "Spinner dolphin"}
+    sci_map = {"humpback_whale": "Megaptera novaeangliae", "spinner_dolphin": "Stenella longirostris"}
+    for i, r in enumerate(df.itertuples(), start=1):
+        sp = getattr(r, "species", None) or "humpback_whale"
+        db_sightings.append({
+            "id": i,
+            "species_id": 1 if sp == "humpback_whale" else 2,
+            "common_name": species_map.get(sp, "Unidentified"),
+            "scientific_name": sci_map.get(sp, ""),
+            "event_date": str(r.date)[:10] if hasattr(r, "date") else "",
+            "lat": float(r.lat),
+            "lon": float(r.lon),
+            "individual_count": None if getattr(r, "individuals", None) is None else float(r.individuals),
+            "source": "OBIS",
+        })
+
+# ---- database aggregates so the dashboard renders without the API ----
+dashboard = {}
+ov_path = ROOT / "website" / "js" / "_overview.json"
+try:
+    import urllib.request
+    req = urllib.request.Request("http://127.0.0.1:8000/api/dashboard/overview")
+    with urllib.request.urlopen(req, timeout=30) as r:
+        dashboard = json.loads(r.read().decode())
+except Exception:
+    try:
+        dashboard = json.loads(ov_path.read_text(encoding="utf-8"))
+    except Exception:
+        dashboard = {}
 
 data = {
     "species": SPECIES,
     "sightings": sightings,
+    "dbSightings": db_sightings,
+    "dashboard": dashboard,
     "metrics": {
         "accuracy": round(metrics["accuracy"] * 100, 1),
         "f1": round(metrics["f1_weighted"], 3),
@@ -156,3 +198,5 @@ with open(OUT, "w", encoding="utf-8") as f:
 print("species:", len(SPECIES))
 print("sightings:", len(sightings))
 print("written:", OUT)
+
+

@@ -115,10 +115,24 @@
   function openDashboard() {
     el('dash-gate').classList.add('hidden');
     el('dash-app').classList.remove('hidden');
-    window.API.dashboardOverview().then(paint).catch(function (err) {
-      el('dash-kpis').innerHTML = '<div class="kpi kpi--red"><div class="kpi__label">API unavailable</div>' +
-        '<div class="kpi__value">-</div><div class="kpi__meta">' + esc(err.message) + '</div></div>';
-    });
+    window.API.dashboardOverview()
+      .then(paint)
+      .catch(function (err) {
+        var snap = window.SITE_DATA.dashboard;
+        if (snap && snap.totals) {
+          paint(snap);
+          var note = document.getElementById('dash-offline');
+          if (note) {
+            note.className = 'notice notice--warn';
+            note.textContent = 'The API is unreachable, so these figures come from the published ' +
+              'database snapshot taken when the site was built. Sign in and reconnect for live figures.';
+            note.style.display = 'block';
+          }
+        } else {
+          el('dash-kpis').innerHTML = '<div class="kpi kpi--red"><div class="kpi__label">API unavailable</div>' +
+            '<div class="kpi__value">-</div><div class="kpi__meta">' + esc(err.message) + '</div></div>';
+        }
+      });
   }
 
   document.addEventListener('DOMContentLoaded', function () {
