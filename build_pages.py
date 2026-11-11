@@ -3,8 +3,30 @@ import os
 
 ROOT = r"C:\Users\Deepak Sagar\OneDrive\Desktop\MoveOne\whale-dolphin-conservation\website"
 
+import hashlib
+import os
+
+ROOT = r"C:\Users\Deepak Sagar\OneDrive\Desktop\MoveOne\whale-dolphin-conservation\website"
+
 # ------------------------------------------------------------------ assets
-VERSION = "v3"
+def _asset_version():
+    """Content hash of the shared assets so a cache-buster is always correct."""
+    h = hashlib.md5()
+    targets = [os.path.join(ROOT, "css", "style.css")]
+    jsdir = os.path.join(ROOT, "js")
+    for name in sorted(os.listdir(jsdir)):
+        if name.endswith(".js"):
+            targets.append(os.path.join(jsdir, name))
+    for t in targets:
+        try:
+            with open(t, "rb") as f:
+                h.update(f.read())
+        except OSError:
+            pass
+    return "v" + h.hexdigest()[:8]
+
+
+VERSION = _asset_version()
 
 LOGO = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Whale and Dolphin Conservation">
   <path d="M8 30c0-5.4 4.4-9.8 10-9.8 3.3 0 6.2 1.6 8 4.1 1.8-2.5 4.7-4.1 8-4.1 5.6 0 10 4.4 10 9.8 0 2.6-2 4.6-4.6 4.6H12.6A4.6 4.6 0 0 1 8 30Z" fill="#ffffff" opacity=".95"/>
@@ -91,8 +113,10 @@ __EXTRA__
         <button class="nav__dropbtn">Research <span class="nav__caret">&#9662;</span></button>
         <div class="nav__menu">
           <a href="research.html">Research &amp; Insights</a>
+          <a href="bioacoustics.html">Marine Bioacoustics</a>
           <a href="gis.html">GIS Marine Explorer</a>
           <a href="ai.html">AI Conservation</a>
+          <a href="identify.html">Species Identification</a>
         </div>
       </div>
       <a href="about.html#contact">Contact</a>
@@ -989,5 +1013,270 @@ write("privacy.html", page(
     "Privacy Policy",
     "How the WhaleAI marine conservation platform demonstration handles audio, credentials and contact messages.",
     privacy_body))
+
+# ================================================================== BIOACOUSTICS
+bio_body = page_hero(
+    [("Home", "index.html"), ("Research", None), ("Marine Bioacoustics", None)],
+    "Marine Bioacoustics &ndash; Understanding Whale and Dolphin Communication",
+    "Upload an underwater recording and the platform measures it: waveform, log-mel spectrogram, "
+    "frequency structure, species classification and an interpretation of the acoustic pattern.") + """
+<section class="section" id="analysis-section">
+  <div class="container">
+    <div class="notice" id="api-status" style="display:none"></div>
+
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:32px;align-items:start">
+      <div>
+        <div class="panel">
+          <h3>1 &middot; Upload a recording</h3>
+          <p class="sub">WAV, FLAC, OGG, MP3 or AIFF &middot; up to 25 MB &middot; analysed on the server when it is reachable.</p>
+          <label class="dropzone" id="bio-drop" for="bio-file">
+            <div class="dropzone__ico">&#9835;</div>
+            <b>Drop an audio file or click to browse</b>
+            <span>Hydrophone recordings, underwater microphones or any marine audio</span>
+          </label>
+          <input type="file" id="bio-file" accept="audio/*,.wav,.flac,.ogg,.mp3,.aiff" hidden>
+
+          <div class="file-meta" id="file-meta" style="display:none">
+            <div class="fm"><div class="k">File</div><div class="v" id="file-name">-</div></div>
+            <div class="fm"><div class="k">Size</div><div class="v" id="file-size">-</div></div>
+            <div class="fm"><div class="k">Duration</div><div class="v" id="file-duration">-</div></div>
+            <div class="fm"><div class="k">Sample rate</div><div class="v" id="file-rate">-</div></div>
+            <div class="fm"><div class="k">Channels</div><div class="v" id="file-channels">-</div></div>
+          </div>
+
+          <div class="player-wrap" id="player-wrap" style="display:none">
+            <audio id="player" controls preload="metadata"></audio>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h3>2 &middot; Analysis result</h3>
+          <p class="sub">Measured features from the classifier and the acoustic-pattern analyser.</p>
+
+          <div id="analysis-empty" class="muted" style="padding:26px 0;text-align:center">
+            No recording analysed yet. Upload a file or play one of the reference recordings below.
+          </div>
+          <div id="analysis-loading" class="muted" style="display:none;padding:26px 0;text-align:center">
+            Analysing&hellip;
+          </div>
+
+          <div id="analysis-result" style="display:none">
+            <div class="species-result">
+              <span class="name" id="a-species">-</span>
+              <span class="conf" id="a-confidence">-</span>
+              <span class="src" id="a-source"></span>
+            </div>
+
+            <div id="a-bars"></div>
+
+            <div class="pattern-box">
+              <h4 id="a-pattern-label">-</h4>
+              <p id="a-pattern-desc"></p>
+              <p class="interp" id="a-pattern-interpretation"></p>
+            </div>
+
+            <div class="fact-grid">
+              <div class="fact"><div class="k">Dominant frequency</div><div class="v" id="a-dom-freq">-</div></div>
+              <div class="fact"><div class="k">Spectral centroid</div><div class="v" id="a-centroid">-</div></div>
+              <div class="fact"><div class="k">Bandwidth</div><div class="v" id="a-bandwidth">-</div></div>
+              <div class="fact"><div class="k">Pulse rate</div><div class="v" id="a-pulse">-</div></div>
+              <div class="fact"><div class="k">Spectral flatness</div><div class="v" id="a-flatness">-</div></div>
+              <div class="fact"><div class="k">Tonality</div><div class="v" id="a-tonality">-</div></div>
+              <div class="fact"><div class="k">Signal-to-noise</div><div class="v" id="a-snr">-</div></div>
+              <div class="fact"><div class="k">Recording length</div><div class="v" id="a-duration">-</div></div>
+              <div class="fact"><div class="k">Analysed window</div><div class="v" id="a-window">-</div></div>
+              <div class="fact"><div class="k">Sample rate</div><div class="v" id="a-samplerate">-</div></div>
+            </div>
+
+            <div class="viz__caption">Waveform</div>
+            <div class="viz viz--wave"><canvas id="a-waveform" width="900" height="130"></canvas></div>
+
+            <div class="viz__caption">Log-mel spectrogram</div>
+            <div class="viz viz--spec"><canvas id="a-spectrogram" width="900" height="260"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--white">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Communication explorer</span>
+      <h2>Recorded vocalizations and their scientific interpretation</h2>
+      <p>Reference recordings for each modelled class. Select any recording to load it into the
+         analyser above, or press play to hear it directly. These are synthesised samples that
+         reproduce the spectral signature each class was trained on.</p>
+    </div>
+    <div class="sample-list" id="sample-list"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Marine communication simulator</span>
+      <h2>Simulate an interaction between two animals</h2>
+      <p>Choose a species and the platform composes a short, research-informed sequence of
+         vocalizations, annotating the measured acoustic structure and the documented functions
+         of each call type.</p>
+    </div>
+
+    <div class="panel">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;align-items:end">
+        <div class="field" style="margin:0">
+          <label for="sim-group">Group</label>
+          <select id="sim-group">
+            <option value="whale">Whale</option>
+            <option value="dolphin">Dolphin</option>
+          </select>
+        </div>
+        <div class="field" style="margin:0">
+          <label for="sim-species">Species</label>
+          <select id="sim-species"></select>
+        </div>
+        <div class="field" style="margin:0">
+          <label for="sim-turns">Turns</label>
+          <select id="sim-turns">
+            <option>4</option><option selected>6</option><option>8</option><option>10</option>
+          </select>
+        </div>
+        <button class="btn btn--primary" id="sim-run" type="button">Generate simulation</button>
+      </div>
+    </div>
+
+    <div id="sim-empty" class="muted mt-3" style="padding:26px 0;text-align:center">
+      Choose a group and press generate.
+    </div>
+
+    <div id="sim-result" style="display:none" class="mt-3">
+      <div class="panel">
+        <div class="species-result">
+          <span class="name" id="sim-species">-</span>
+          <span class="conf" id="sim-latin" style="font-style:italic;font-weight:400"></span>
+          <span class="src" id="sim-source"></span>
+        </div>
+        <div class="fact-grid">
+          <div class="fact"><div class="k">Call band</div><div class="v" id="sim-band">-</div></div>
+          <div class="fact"><div class="k">Pulse rate</div><div class="v" id="sim-rate">-</div></div>
+          <div class="fact"><div class="k">Signal structure</div><div class="v" id="sim-structure" style="font-size:.82rem;font-weight:600"></div></div>
+        </div>
+        <p class="muted mt-2" id="sim-context"></p>
+      </div>
+
+      <div class="mt-3" id="sim-utterances"></div>
+
+      <div class="panel mt-3">
+        <h3>Documented functions of these call types</h3>
+        <ul class="muted mt-2" style="padding-left:20px" id="sim-functions"></ul>
+      </div>
+
+      <div class="disclaimer" id="sim-disclaimer"></div>
+    </div>
+  </div>
+</section>
+"""
+write("bioacoustics.html", page(
+    "Marine Bioacoustics",
+    "Upload whale and dolphin recordings and analyse the waveform, spectrogram, acoustic pattern "
+    "and species classification with a trained model.",
+    bio_body,
+    extra_js='<script src="js/config.js"></script>\n'
+             '<script src="js/api.js"></script>\n'
+             '<script src="js/model.js"></script>\n'
+             '<script src="js/dsp.js"></script>\n'
+             '<script src="js/bioacoustics.js"></script>'))
+
+# ================================================================== IMAGE ID
+identify_body = page_hero(
+    [("Home", "index.html"), ("Research", None), ("AI Species Identification", None)],
+    "AI Species Identification",
+    "Upload a photograph of a whale or dolphin. A trained support-vector classifier, fed with "
+    "histogram-of-oriented-gradients shape descriptors and colour statistics, returns the most "
+    "likely species with a confidence score.") + """
+<section class="section">
+  <div class="container">
+    <div class="notice" id="api-status" style="display:none"></div>
+
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:32px;align-items:start">
+      <div>
+        <div class="panel">
+          <h3>1 &middot; Upload a photograph</h3>
+          <p class="sub">JPG, PNG or WEBP &middot; up to 8 MB</p>
+          <label class="dropzone" id="id-drop" for="id-file">
+            <div class="dropzone__ico">&#128247;</div>
+            <b>Drop an image or click to browse</b>
+            <span>A clear photograph of the animal works best</span>
+          </label>
+          <input type="file" id="id-file" accept="image/*" hidden>
+          <div class="preview mt-3" id="id-preview">
+            <span class="muted" style="font-size:.85rem">Image preview appears here</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h3>2 &middot; Identification result</h3>
+          <p class="sub">Predicted species with a confidence score.</p>
+
+          <div id="id-empty" class="muted" style="padding:26px 0;text-align:center">
+            No image analysed yet.
+          </div>
+          <div id="id-loading" class="muted" style="display:none;padding:26px 0;text-align:center">
+            Classifying&hellip;
+          </div>
+
+          <div id="id-result" style="display:none">
+            <div class="species-result">
+              <span class="name" id="id-species">-</span>
+              <span class="conf" id="id-confidence">-</span>
+              <span class="src" id="id-source"></span>
+            </div>
+            <p class="muted" style="font-style:italic;font-size:.9rem" id="id-latin"></p>
+            <div id="id-bars"></div>
+            <div class="pattern-box">
+              <h4>How to read this result</h4>
+              <p id="id-note"></p>
+              <p class="interp">Photographic identification is a model estimate on reference
+                 imagery. It supports triage of large image collections and is not a substitute
+                 for identification by a trained observer.</p>
+            </div>
+            <a class="btn btn--outline btn--sm mt-3" id="id-species-link" href="species.html">Open the species record</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--white">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Reference set</span>
+      <h2>Openly-licensed reference photographs</h2>
+      <p>The classifier was trained on reference imagery retrieved from Wikimedia Commons.
+         Select any photograph to load it into the classifier above.</p>
+    </div>
+    <div class="grid grid--4" id="id-reference"></div>
+    <p class="muted mt-3" style="font-size:.84rem">
+      Photographs come from Wikimedia Commons contributors and are reused here under their
+      respective free licences. The classifier reaches about 73% accuracy on held-out images:
+      the baleen whale classes are reliable, while the two dolphin classes are frequently
+      confused with one another because of their visual similarity.
+    </p>
+  </div>
+</section>
+"""
+write("identify.html", page(
+    "AI Species Identification",
+    "Identify whale and dolphin species from photographs with a trained support-vector classifier.",
+    identify_body,
+    extra_js='<script src="js/config.js"></script>\n'
+             '<script src="js/api.js"></script>\n'
+             '<script src="js/identify.js"></script>'))
 
 print("\nAll pages generated.")

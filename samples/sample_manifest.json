@@ -1,0 +1,170 @@
+{
+  "classes": [
+    "blue_whale",
+    "fin_whale",
+    "humpback_whale",
+    "killer_whale",
+    "bottlenose_dolphin",
+    "background"
+  ],
+  "files": {
+    "blue_whale": [
+      {
+        "file": "blue_whale_1.wav",
+        "bytes": 160044
+      },
+      {
+        "file": "blue_whale_2.wav",
+        "bytes": 160044
+      }
+    ],
+    "fin_whale": [
+      {
+        "file": "fin_whale_1.wav",
+        "bytes": 160044
+      },
+      {
+        "file": "fin_whale_2.wav",
+        "bytes": 160044
+      }
+    ],
+    "humpback_whale": [
+      {
+        "file": "humpback_whale_1.wav",
+        "bytes": 160044
+      },
+      {
+        "file": "humpback_whale_2.wav",
+        "bytes": 160044
+      }
+    ],
+    "killer_whale": [
+      {
+        "file": "killer_whale_1.wav",
+        "bytes": 160044
+      },
+      {
+        "file": "killer_whale_2.wav",
+        "bytes": 160044
+      }
+    ],
+    "bottlenose_dolphin": [
+      {
+        "file": "bottlenose_dolphin_1.wav",
+        "bytes": 160044
+      },
+      {
+        "file": "bottlenose_dolphin_2.wav",
+        "bytes": 160044
+      }
+    ],
+    "background": [
+      {
+        "file": "background_1.wav",
+        "bytes": 160044
+      },
+      {
+        "file": "background_2.wav",
+        "bytes": 160044
+      }
+    ]
+  },
+  "validation": [
+    {
+      "file": "blue_whale_1.wav",
+      "truth": "blue_whale",
+      "predicted": "blue_whale",
+      "confidence": 0.9701,
+      "pattern": "Low-frequency call",
+      "dom_hz": 15.6
+    },
+    {
+      "file": "blue_whale_2.wav",
+      "truth": "blue_whale",
+      "predicted": "blue_whale",
+      "confidence": 0.9702,
+      "pattern": "Low-frequency call",
+      "dom_hz": 15.6
+    },
+    {
+      "file": "fin_whale_1.wav",
+      "truth": "fin_whale",
+      "predicted": "fin_whale",
+      "confidence": 0.9749,
+      "pattern": "Low-frequency call",
+      "dom_hz": 15.6
+    },
+    {
+      "file": "fin_whale_2.wav",
+      "truth": "fin_whale",
+      "predicted": "fin_whale",
+      "confidence": 0.9777,
+      "pattern": "Low-frequency call",
+      "dom_hz": 15.6
+    },
+    {
+      "file": "humpback_whale_1.wav",
+      "truth": "humpback_whale",
+      "predicted": "humpback_whale",
+      "confidence": 0.999,
+      "pattern": "Harmonic / song-like structure",
+      "dom_hz": 750.0
+    },
+    {
+      "file": "humpback_whale_2.wav",
+      "truth": "humpback_whale",
+      "predicted": "humpback_whale",
+      "confidence": 0.9991,
+      "pattern": "Harmonic / song-like structure",
+      "dom_hz": 750.0
+    },
+    {
+      "file": "killer_whale_1.wav",
+      "truth": "killer_whale",
+      "predicted": "killer_whale",
+      "confidence": 0.9979,
+      "pattern": "Harmonic / song-like structure",
+      "dom_hz": 1500.0
+    },
+    {
+      "file": "killer_whale_2.wav",
+      "truth": "killer_whale",
+      "predicted": "killer_whale",
+      "confidence": 0.9984,
+      "pattern": "Harmonic / song-like structure",
+      "dom_hz": 1515.6
+    },
+    {
+      "file": "bottlenose_dolphin_1.wav",
+      "truth": "bottlenose_dolphin",
+      "predicted": "bottlenose_dolphin",
+      "confidence": 0.9979,
+      "pattern": "Harmonic / song-like structure",
+      "dom_hz": 5359.4
+    },
+    {
+      "file": "bottlenose_dolphin_2.wav",
+      "truth": "bottlenose_dolphin",
+      "predicted": "bottlenose_dolphin",
+      "confidence": 0.9995,
+      "pattern": "Harmonic / song-like structure",
+      "dom_hz": 4421.9
+    },
+    {
+      "file": "background_1.wav",
+      "truth": "background",
+      "predicted": "background",
+      "confidence": 0.9996,
+      "pattern": "Broadband click train",
+      "dom_hz": 7328.1
+    },
+    {
+      "file": "background_2.wav",
+      "truth": "background",
+      "predicted": "background",
+      "confidence": 0.9998,
+      "pattern": "Broadband click train",
+      "dom_hz": 968.8
+    }
+  ]
+}
