@@ -627,8 +627,8 @@ write("gis.html", page(
     "GIS Marine Explorer",
     "Interactive map of whale and dolphin sighting records from OBIS, with species, region and date filtering.",
     gis_body,
-    extra='<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">',
-    extra_js='<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>\n<script src="js/gis.js"></script>'))
+    extra='<link rel="stylesheet" href="vendor/leaflet/leaflet.css">',
+    extra_js='<script src="vendor/leaflet/leaflet.js"></script>\n<script src="js/gis.js"></script>'))
 
 # ================================================================== AI
 ai_body = page_hero(
@@ -698,7 +698,7 @@ write("ai.html", page(
     "AI Conservation",
     "Identify whale and dolphin species from underwater recordings with a browser-based audio classifier.",
     ai_body,
-    extra_js='<script src="js/ai.js"></script>'))
+    extra_js='<script src="js/model.js"></script>\n<script src="js/ai.js"></script>'))
 
 # ================================================================== DASHBOARD
 dash_body = page_hero(
@@ -781,7 +781,7 @@ write("dashboard.html", page(
     "Researcher Dashboard",
     "Analytics dashboard for marine species statistics, sighting records, distribution insights and conservation status.",
     dash_body,
-    extra='<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>',
+    extra='<script src="vendor/chart.umd.min.js"></script>',
     extra_js='<script src="js/dashboard.js"></script>'))
 
 # ================================================================== ABOUT

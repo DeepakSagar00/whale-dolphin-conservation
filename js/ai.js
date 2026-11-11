@@ -3,7 +3,7 @@
 (function () {
   'use strict';
 
-  var MODEL = null;
+  var MODEL = window.MODEL || null;
   var fileInput = document.getElementById('ai-file');
   var drop = document.getElementById('ai-drop');
   var result = document.getElementById('ai-result');
@@ -281,17 +281,12 @@
   });
 
   /* ------------------------------------------------------------------ init */
-  fetch('model.json?v=2')
-    .then(function (r) { if (!r.ok) throw new Error('model.json ' + r.status); return r.json(); })
-    .then(function (m) {
-      MODEL = m;
-      document.getElementById('ai-classes').textContent =
-        m.classes.map(function (c) { return c.replace(/_/g, ' '); }).join('  ·  ') +
-        '  — ' + m.bands.length + ' frequency bands, ' + (m.mean.length) + ' features per window.';
-    })
-    .catch(function (err) {
-      verdict.innerHTML = 'The model could not be loaded (' + esc(err.message) +
-        '). Please reload the page.';
-      result.classList.add('show');
-    });
+  if (!MODEL) {
+    verdict.innerHTML = 'The model could not be loaded. Please reload the page.';
+    result.classList.add('show');
+  } else {
+    document.getElementById('ai-classes').textContent =
+      MODEL.classes.map(function (c) { return c.replace(/_/g, ' '); }).join('  ·  ') +
+      '  — ' + MODEL.bands.length + ' frequency bands, ' + MODEL.mean.length + ' features per window.';
+  }
 })();

@@ -49,10 +49,26 @@
 
   /* ---- map setup ---- */
   var map = L.map('map', { scrollWheelZoom: true }).setView([4, 62], 3);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  var tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
+
+  // if the map tiles cannot be reached (offline / restricted network) the
+  // records and markers still work, so just explain what is missing
+  var tileFailures = 0;
+  tiles.on('tileerror', function () {
+    tileFailures++;
+    if (tileFailures === 4) {
+      var note = document.createElement('div');
+      note.className = 'map-fallback';
+      note.style.cssText = 'position:absolute;inset:auto 12px 12px 12px;background:rgba(255,255,255,.96);' +
+        'border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:.85rem;color:var(--ink-400);z-index:600';
+      note.textContent = 'Base map tiles could not be loaded (no internet connection to the tile server). ' +
+        'Sighting markers and the record table below are still fully functional.';
+      document.querySelector('.map-wrap').appendChild(note);
+    }
+  });
 
   var markerLayer = L.layerGroup().addTo(map);
   var densityLayer = L.layerGroup();
