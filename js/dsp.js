@@ -229,7 +229,6 @@
     for (var m = 0; m < nBins; m++) meanPower[m] /= frames.length;
 
     var centroid = energyTotal > 0 ? weighted / energyTotal : 0;
-    var flatness = (arithSum > 0) ? Math.exp(geoSum / count) / (arithSum / count) : 0;
 
     var domIdx = 0;
     for (var d = 1; d < nBins; d++) if (meanPower[d] > meanPower[domIdx]) domIdx = d;
@@ -241,12 +240,25 @@
     while (hi < nBins - 1 && meanPower[hi] > half) hi++;
     var bandwidth = (hi - lo) * model.sr / model.n_fft;
 
+    // spectral flatness over the ACTIVE part of the spectrum only
+    var actCount = 0, geoSum = 0, ariSum = 0;
+    for (var a1 = 0; a1 < nBins; a1++) {
+      if (meanPower[a1] >= 0.10 * meanPower[domIdx]) {
+        actCount++;
+        geoSum += Math.log(meanPower[a1] + 1e-12);
+        ariSum += meanPower[a1];
+      }
+    }
+    var flatness = actCount >= 3 ? Math.exp(geoSum / actCount) / (ariSum / actCount + 1e-12) : 1;
+
     var meanSpec = 0;
     for (var s = 0; s < nBins; s++) meanSpec += meanPower[s];
     meanSpec /= nBins;
     var tonality = meanPower[domIdx] / (meanSpec + 1e-12);
 
-    // pulse rate from the autocorrelation of the frame energy sequence
+    // pulse rate from the autocorrelation of the frame energy sequence.
+    // The envelope is sampled at the frame rate (sr / hop), not at sr.
+    var frameRate = model.sr / model.hop;
     var env = new Float64Array(frames.length);
     for (var e = 0; e < frames.length; e++) {
       var t = 0;
@@ -265,21 +277,21 @@
     var pulseRate = 0;
     if (ac[0] > 0) {
       var best = 0, bestLag = 0;
-      var maxLag = Math.min(ac.length - 1, Math.round(model.sr / model.hop / 50));
+      var maxLag = Math.min(ac.length - 1, Math.floor(frameRate / 2));
       for (var lag = 1; lag <= maxLag; lag++) {
         var v = ac[lag] / ac[0];
         if (v > best) { best = v; bestLag = lag; }
       }
-      if (bestLag > 0) pulseRate = (model.sr / model.hop) / bestLag;
+      if (bestLag > 0) pulseRate = frameRate / bestLag;
     }
 
     var pattern;
-    if (domHz < 200 && bandwidth < 400) pattern = 'low_frequency_call';
-    else if (flatness < 0.05 && tonality > 40 && domHz > 400) pattern = 'tonal_whistle';
-    else if (pulseRate > 40 && bandwidth > 800) pattern = 'broadband_click';
+    if (bandwidth > 4000 && tonality < 15) pattern = 'ambient_noise';
+    else if (domHz < 200 && bandwidth < 400) pattern = 'low_frequency_call';
+    else if (bandwidth < 200 && domHz > 400 && tonality > 60) pattern = 'tonal_whistle';
+    else if (pulseRate > 30 && bandwidth > 800) pattern = 'broadband_click';
     else if (tonality > 25 && bandwidth < 1500) pattern = 'harmonic_song';
-    else if (flatness > 0.25 && tonality < 12) pattern = 'ambient_noise';
-    else pattern = tonality > 18 ? 'harmonic_song' : 'broadband_click';
+    else pattern = tonality > 15 ? 'harmonic_song' : 'broadband_click';
 
     var info = PATTERN_INFO[pattern];
     return {

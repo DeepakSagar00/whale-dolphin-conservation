@@ -279,9 +279,6 @@ def analyse_pattern(x: np.ndarray, sr: int, species: str | None = None) -> Acous
     total = power.sum(axis=0) + 1e-12
 
     centroid = float((f[:, None] * power).sum() / power.sum())
-    # spectral flatness: geometric mean over arithmetic mean, per frame
-    frame_flat = np.exp(np.log(power + 1e-12).mean(axis=0)) / (power.mean(axis=0) + 1e-12)
-    flatness = float(np.mean(frame_flat))
 
     # dominant frequency = peak of the time-averaged spectrum
     mean_power = power.mean(axis=1)
@@ -298,38 +295,52 @@ def analyse_pattern(x: np.ndarray, sr: int, species: str | None = None) -> Acous
         hi += 1
     bandwidth = float(f[hi] - f[lo])
 
-    # pulse rate: autocorrelation peak of the energy envelope
+    # spectral flatness over the ACTIVE part of the spectrum only - including
+    # the near-silent floor would make every recording look broadband.
+    active = mean_power >= 0.10 * mean_power[dom_idx]
+    if active.sum() >= 3:
+        p_active = mean_power[active]
+        geo = float(np.exp(np.log(p_active + 1e-12).mean()))
+        ari = float(p_active.mean())
+        flatness = geo / (ari + 1e-12)
+    else:
+        flatness = 1.0
+
+    # pulse rate: autocorrelation peak of the frame-energy envelope. The
+    # envelope is sampled at the frame rate (sr / hop), not at sr.
+    frame_rate = sr / float(HOP)
     env = total - total.mean()
     ac = np.correlate(env, env, mode="full")[len(env) - 1:]
+    pulse_rate = 0.0
     if len(ac) > 8 and ac[0] > 0:
         ac = ac / ac[0]
-        lo_lag, hi_lag = 1, min(len(ac) - 1, int(sr / 50))
+        lo_lag, hi_lag = 1, min(len(ac) - 1, int(frame_rate / 2.0))
         if hi_lag > lo_lag:
             seg = ac[lo_lag:hi_lag]
             lag = int(np.argmax(seg)) + lo_lag
-            pulse_rate = float(sr / lag)
-        else:
-            pulse_rate = 0.0
-    else:
-        pulse_rate = 0.0
+            pulse_rate = float(frame_rate / lag)
 
     # tonality: peakiness of the mean spectrum
     spec = mean_power + 1e-12
     tonality = float(np.max(spec) / (spec.mean() + 1e-12))
 
     # ---- rule-based pattern assignment ---------------------------------
-    if dom_hz < 200 and bandwidth < 400:
+    # Bandwidth and tonality separate the call types reliably: a whistle is
+    # narrow-band and strongly tonal, a low-frequency baleen call sits below
+    # 200 Hz, a song phrase occupies a moderate band, and ship noise is
+    # broadband with almost no tonal peak.
+    if bandwidth > 4000 and tonality < 15:
+        pattern = "ambient_noise"
+    elif dom_hz < 200 and bandwidth < 400:
         pattern = "low_frequency_call"
-    elif flatness < 0.05 and tonality > 40 and dom_hz > 400:
+    elif bandwidth < 200 and dom_hz > 400 and tonality > 60:
         pattern = "tonal_whistle"
-    elif pulse_rate > 40 and bandwidth > 800:
+    elif pulse_rate > 30 and bandwidth > 800:
         pattern = "broadband_click"
     elif tonality > 25 and bandwidth < 1500:
         pattern = "harmonic_song"
-    elif flatness > 0.25 and tonality < 12:
-        pattern = "ambient_noise"
     else:
-        pattern = "harmonic_song" if tonality > 18 else "broadband_click"
+        pattern = "harmonic_song" if tonality > 15 else "broadband_click"
 
     label, short_desc, description, interpretation = PATTERN_INFO[pattern]
 
@@ -337,7 +348,7 @@ def analyse_pattern(x: np.ndarray, sr: int, species: str | None = None) -> Acous
     if pattern == "low_frequency_call":
         conf = float(min(0.95, 0.55 + max(0.0, (200 - dom_hz) / 200.0) * 0.4))
     elif pattern == "tonal_whistle":
-        conf = float(min(0.95, 0.5 + (1 - min(flatness / 0.05, 1)) * 0.45))
+        conf = float(min(0.95, 0.5 + (1 - min(bandwidth / 200.0, 1.0)) * 0.45))
     elif pattern == "broadband_click":
         conf = float(min(0.92, 0.5 + min(pulse_rate / 120.0, 1.0) * 0.4))
     elif pattern == "harmonic_song":

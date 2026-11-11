@@ -139,7 +139,7 @@
       "truth": "bottlenose_dolphin",
       "predicted": "bottlenose_dolphin",
       "confidence": 0.9979,
-      "pattern": "Harmonic / song-like structure",
+      "pattern": "Tonal whistle",
       "dom_hz": 5359.4
     },
     {
@@ -147,7 +147,7 @@
       "truth": "bottlenose_dolphin",
       "predicted": "bottlenose_dolphin",
       "confidence": 0.9995,
-      "pattern": "Harmonic / song-like structure",
+      "pattern": "Tonal whistle",
       "dom_hz": 4421.9
     },
     {
@@ -155,7 +155,7 @@
       "truth": "background",
       "predicted": "background",
       "confidence": 0.9996,
-      "pattern": "Broadband click train",
+      "pattern": "Ambient / broadband noise",
       "dom_hz": 7328.1
     },
     {
@@ -163,7 +163,7 @@
       "truth": "background",
       "predicted": "background",
       "confidence": 0.9998,
-      "pattern": "Broadband click train",
+      "pattern": "Ambient / broadband noise",
       "dom_hz": 968.8
     }
   ]
