@@ -1,0 +1,13 @@
+fastapi==0.115.*
+uvicorn[standard]==0.32.*
+pydantic==2.*
+numpy==2.*
+scipy==1.*
+scikit-learn==1.*
+scikit-image==0.26.*
+Pillow==12.*
+soundfile==0.14.*
+joblib==1.5.*
+PyJWT==2.*
+psycopg2-binary==2.9.*
+python-multipart==0.0.*

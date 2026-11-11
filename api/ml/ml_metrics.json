@@ -1,0 +1,56 @@
+{
+  "accuracy": 0.9930015552099534,
+  "f1_weighted": 0.9930052315438082,
+  "roc_auc_ovr": 0.9996614144014697,
+  "confusion_matrix": [
+    [
+      630,
+      6,
+      0,
+      0
+    ],
+    [
+      6,
+      634,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      650,
+      0
+    ],
+    [
+      3,
+      1,
+      1,
+      640
+    ]
+  ],
+  "classes": [
+    "Critical",
+    "High",
+    "Low",
+    "Moderate"
+  ],
+  "report": "              precision    recall  f1-score   support\n\n    Critical       0.99      0.99      0.99       636\n        High       0.99      0.99      0.99       641\n         Low       1.00      1.00      1.00       650\n    Moderate       1.00      0.99      1.00       645\n\n    accuracy                           0.99      2572\n   macro avg       0.99      0.99      0.99      2572\nweighted avg       0.99      0.99      0.99      2572\n",
+  "logistic_f1_weighted": 0.9366422437762751,
+  "feature_importance": {
+    "vessel_intensity": 0.4265,
+    "noise_proxy": 0.383,
+    "sst": 0.082,
+    "depth_m": 0.0447,
+    "habitat_suit": 0.0203,
+    "spin_suit": 0.0169,
+    "fishing_intensity": 0.0149,
+    "hump_suit": 0.0103,
+    "in_mpa": 0.0009,
+    "species_density": 0.0002,
+    "hump_inds": 0.0001,
+    "hump_events": 0.0001,
+    "spin_events": 0.0,
+    "spin_inds": 0.0
+  },
+  "levels": "ml"
+}
