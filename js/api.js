@@ -11,6 +11,7 @@
 
   var state = {
     base: BASE,
+    fallbacks: (CFG.apiFallbacks || []).slice(),
     online: null,          // null = not tested yet
     lastError: null
   };
@@ -35,15 +36,19 @@
     return h;
   }
 
-  function request(path, options) {
-    options = options || {};
-    var url = state.base + path;
+  function fetchWith(base, path, options) {
     var opts = {
       method: options.method || 'GET',
       headers: authHeaders(options.headers),
       body: options.body
     };
-    return fetch(url, opts).then(function (r) {
+    var timeout = options.timeout || 15000;
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    if (ctrl) opts.signal = ctrl.signal;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeout) : null;
+
+    return fetch(base + path, opts).then(function (r) {
+      if (timer) clearTimeout(timer);
       var ct = r.headers.get('content-type') || '';
       if (ct.indexOf('application/json') > -1) {
         return r.json().then(function (data) {
@@ -54,10 +59,44 @@
       if (!r.ok) { var e2 = new Error('Request failed (' + r.status + ')'); e2.status = r.status; throw e2; }
       return r.text();
     }).catch(function (err) {
-      state.online = false;
-      state.lastError = err.message;
+      if (timer) clearTimeout(timer);
+      state.lastError = err.name === 'AbortError' ? 'request timed out' : err.message;
       throw err;
     });
+  }
+
+  /* Try the configured API, then any other known endpoint, so a moved or
+     restarted backend does not take the interface down with it. */
+  function withFailover(call) {
+    var candidates = [state.base];
+    if (state.fallbacks) {
+      state.fallbacks.forEach(function (b) {
+        if (b && b !== state.base && candidates.indexOf(b) === -1) candidates.push(b);
+      });
+    }
+    var i = 0;
+    function attempt() {
+      var base = candidates[i];
+      var prev = state.base;
+      state.base = base;
+      return call(base).then(function (result) {
+        state.base = prev;
+        state.online = true;
+        return result;
+      }).catch(function (err) {
+        state.base = prev;
+        i++;
+        if (i < candidates.length) return attempt();
+        state.online = false;
+        throw err;
+      });
+    }
+    return attempt();
+  }
+
+  function request(path, options) {
+    options = options || {};
+    return withFailover(function (base) { return fetchWith(base, path, options); });
   }
 
   function json(path, method, body) {
@@ -96,8 +135,12 @@
 
     /* Probe the API so the UI can show an honest connection banner. */
     health: function () {
-      return request('/api/health')
-        .then(function (data) { state.online = true; return data; })
+      return withFailover(function (base) {
+        var ctrl = ('AbortController' in window) ? new AbortController() : null;
+        var opts = { headers: authHeaders() };
+        if (ctrl) { opts.signal = ctrl.signal; setTimeout(function () { ctrl.abort(); }, 6000); }
+        return fetch(base + '/api/health', opts).then(function (r) { return r.json(); });
+      }).then(function (data) { state.online = true; return data; })
         .catch(function () { state.online = false; return null; });
     },
 

@@ -23,6 +23,7 @@
   window.APP_CONFIG = {
     apiBaseUrl: base.replace(/\/$/, ''),
     defaultApiBaseUrl: DEFAULT_API,
+    apiFallbacks: [DEFAULT_API, 'http://127.0.0.1:8000'],
     localFallback: true,
     demoUser: { username: 'researcher', password: 'researcher' }
   };
