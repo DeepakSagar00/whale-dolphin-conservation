@@ -1,0 +1,4 @@
+id,user_id,lat,lon,threat,action,reason,priority,confidence,status,created_at
+1,1,10.125,75.125,ship collisions,Seasonal vessel speed reduction (<=10 kn) in this cell during peak season,Critical/High risk with high vessel intensity near known sightings,High,0.92,open,2026-08-20 15:28:12.743712
+2,1,10.125,75.125,underwater noise disturbance,Slow-steaming / noise-monitoring zone; advise reduced engine activity,Elevated noise proxy (derived from vessel traffic),Medium,0.92,open,2026-08-20 15:28:12.826586
+3,1,10.125,75.125,habitat degradation,Evaluate extending Marine Protected Area coverage to this cell,Unprotected cell with elevated risk,Medium,0.64,open,2026-08-20 15:28:12.895340

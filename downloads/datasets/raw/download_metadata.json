@@ -1,0 +1,11 @@
+{
+  "source": "OBIS API v3 (api.obis.org)",
+  "query": "occurrence?scientificname=<species>&geometry=POLYGON((20 -35,100 -35,100 30,20 30,20 -35))",
+  "study_area": "Indian Ocean box: lon 20..100, lat -35..30",
+  "species": [
+    "Megaptera novaeangliae",
+    "Stenella longirostris"
+  ],
+  "downloaded_on": "2026-08-20T08:03:26.829373+00:00",
+  "license_note": "OBIS data are generally released under CC-BY-NC; keep attribution in report."
+}

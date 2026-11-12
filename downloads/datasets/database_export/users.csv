@@ -1,0 +1,3 @@
+id,username,email,password_hash,role,created_at
+1,admin,admin@conservation.org,426f71b9ef6b2543f4b23005da9667a6aaecb43d971daf58eaa9c6f141430dbd,admin,2026-08-20 15:27:12.375534
+2,researcher,res@conservation.org,08ea4a0b0c20e7a56d5dc39e64a7126f4e155824e05b975af20dde44c9949556,researcher,2026-08-20 15:27:12.504305

@@ -1,0 +1,55 @@
+{
+  "classes": [
+    "blue_whale",
+    "bottlenose_dolphin",
+    "fin_whale",
+    "humpback_whale",
+    "killer_whale",
+    "spinner_dolphin"
+  ],
+  "n_images": 378,
+  "per_class": {
+    "blue_whale": 70,
+    "bottlenose_dolphin": 48,
+    "fin_whale": 70,
+    "humpback_whale": 70,
+    "killer_whale": 70,
+    "spinner_dolphin": 50
+  },
+  "cv_accuracy_mean": 0.6959,
+  "cv_accuracy_std": 0.0415,
+  "heldout_accuracy": 0.7263,
+  "feature_dim": 8148,
+  "species": {
+    "blue_whale": {
+      "name": "Blue Whale",
+      "latin": "Balaenoptera musculus",
+      "status": "EN"
+    },
+    "fin_whale": {
+      "name": "Fin Whale",
+      "latin": "Balaenoptera physalus",
+      "status": "VU"
+    },
+    "humpback_whale": {
+      "name": "Humpback Whale",
+      "latin": "Megaptera novaeangliae",
+      "status": "LC"
+    },
+    "killer_whale": {
+      "name": "Killer Whale",
+      "latin": "Orcinus orca",
+      "status": "DD"
+    },
+    "bottlenose_dolphin": {
+      "name": "Bottlenose Dolphin",
+      "latin": "Tursiops truncatus",
+      "status": "LC"
+    },
+    "spinner_dolphin": {
+      "name": "Spinner Dolphin",
+      "latin": "Stenella longirostris",
+      "status": "LC"
+    }
+  }
+}

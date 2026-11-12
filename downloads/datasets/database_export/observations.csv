@@ -1,0 +1,2 @@
+id,user_id,species_id,common_name,scientific_name,lat,lon,observed_at,individuals,notes,media_type,media_filename,source,count_confirmed,created_at
+1,2,1,Humpback whale,Megaptera novaeangliae,-19.375,49.125,2026-03-14,3,Small group recorded on the shelf edge during a transect survey; identification confirmed from the call frequency.,photo,humpback.jpg,platform submission,True,2026-11-11 18:43:15.788797

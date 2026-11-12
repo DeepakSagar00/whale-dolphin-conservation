@@ -114,4 +114,31 @@
       '<a class="btn btn--ghost btn--sm mt-2" href="' + d.file + '" download>Download</a>' +
       '</div></article>';
   }).join('');
+
+  /* ---------------- complete dataset catalogue ---------------- */
+  fetch('downloads/datasets/DATASET_CATALOG.json')
+    .then(function (r) { return r.json(); })
+    .then(function (cat) {
+      var host = document.getElementById('res-catalogue');
+      if (!host) return;
+      host.innerHTML = cat.files.map(function (f) {
+        return '<tr>' +
+          '<td class="mono" style="font-size:.8rem">' + esc(f.name) + '</td>' +
+          '<td><span class="badge badge--grey">' + esc(f.group) + '</span></td>' +
+          '<td class="num">' + (typeof f.rows === 'number' ? f.rows.toLocaleString('en-US') : '&ndash;') + '</td>' +
+          '<td class="muted small">' + esc(f.description) + '</td>' +
+          '<td class="num"><a class="btn btn--quiet btn--sm" href="downloads/datasets/' +
+            esc(f.name) + '" download>Get</a></td>' +
+          '</tr>';
+      }).join('');
+      var total = document.getElementById('cat-total');
+      if (total) {
+        total.textContent = cat.total_files + ' files, ' +
+          cat.total_rows.toLocaleString('en-US') + ' rows in total';
+      }
+    })
+    .catch(function () {
+      var host = document.getElementById('res-catalogue');
+      if (host) host.innerHTML = '<tr><td colspan="5" class="empty">The catalogue could not be loaded.</td></tr>';
+    });
 })();

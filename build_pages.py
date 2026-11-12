@@ -1063,6 +1063,24 @@ research_body = pagehead(
   <div class="panel__head" style="padding:0 0 10px"><div><h2>Downloadable resources</h2><p class="sub">Project artefacts published for reuse</p></div></div>
   <div class="grid grid--4" id="res-downloads"></div>
 </div>
+
+<div class="panel mt-3">
+  <div class="panel__head">
+    <div><h2>Complete dataset catalogue</h2><p class="sub" id="cat-total">Every dataset behind the platform, with row counts and direct downloads</p></div>
+    <a class="btn btn--primary btn--sm" href="downloads/WhaleAI_Complete_Dataset.zip" download>Download complete dataset (ZIP)</a>
+  </div>
+  <div class="panel__body">
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>File</th><th>Group</th><th class="num">Rows</th><th>Description</th><th></th></tr></thead>
+        <tbody id="res-catalogue"></tbody>
+      </table>
+    </div>
+    <p class="field__hint mt-3">Occurrence records are published by the Ocean Biodiversity Information
+      System (OBIS) under their own data-sharing terms. Every other table is produced by this
+      project's pipeline.</p>
+  </div>
+</div>
 """
 page("research.html", "Research and Insights",
      "Marine conservation research: datasets, model methodology, measured findings, references "

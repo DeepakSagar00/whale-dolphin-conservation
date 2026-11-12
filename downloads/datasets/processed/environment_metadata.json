@@ -1,0 +1,13 @@
+{
+  "study_area": "lon 20.0..100.0, lat -35.0..30.0",
+  "grid": "~0.5 degree cells",
+  "bathymetry": {
+    "source": "NOAA ETOPO1 1-arc-min via ERDDAP dataset etopo180",
+    "license": "NOAA public domain"
+  },
+  "sst": {
+    "source": "NOAA OISST v2.1 (ncdcOisst21Agg), 5 August-2024 days averaged",
+    "license": "NOAA public domain"
+  },
+  "note": "depth_m clipped at 0 (land set to 0); negative depth = seafloor below surface."
+}

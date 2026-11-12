@@ -1,0 +1,11 @@
+{
+  "cell_size": "0.5 degrees",
+  "risk_formula": "score = 0.28*V + 0.12*F + 0.10*N + 0.18*HabitatSuit + 0.18*SpeciesDensity + 0.14*(1-mpa)",
+  "labels": "derived rule-based composite for training ML; incidents NOT used in label (used for validation only)",
+  "class_thresholds": "quantile-based thresholds from rule-score distribution",
+  "thresholds": {
+    "low_max": 0.2056,
+    "moderate_max": 0.2708,
+    "high_max": 0.3413
+  }
+}

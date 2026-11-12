@@ -1,0 +1,17 @@
+{
+  "declaration": "SIMULATED DATA \u2014 generated for demonstration only, NOT measured observations.",
+  "seed": 42,
+  "generator": "scripts/04_make_simulated.py",
+  "methods": {
+    "vessel_intensity": "exp decay around approximate shipping lanes + ports",
+    "fishing_intensity": "shallow shelf (<300 m) with coastal weighting",
+    "noise_proxy": "derived from vessel_intensity (not measured acoustics)",
+    "protected_areas": "approximate circular placeholders around publicly known MPA locations; boundaries NOT authoritative",
+    "incidents_simulated": "random draws correlated with vessel*species density"
+  },
+  "real_datasets_in_this_project": [
+    "OBIS sightings",
+    "ETOPO1 depth",
+    "OISST SST"
+  ]
+}

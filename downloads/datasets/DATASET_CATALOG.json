@@ -1,0 +1,267 @@
+{
+  "project": "WhaleAI Conservation - Intelligent Whale and Dolphin Conservation Platform",
+  "capstone": "ASAC-CP-141",
+  "generated": "database export + project files",
+  "files": [
+    {
+      "name": "users.csv",
+      "group": "database",
+      "rows": 2,
+      "description": "Platform accounts (usernames, roles and hashed passwords)"
+    },
+    {
+      "name": "species.csv",
+      "group": "database",
+      "rows": 2,
+      "description": "Species reference table with IUCN category"
+    },
+    {
+      "name": "sightings.csv",
+      "group": "database",
+      "rows": 411,
+      "description": "Sighting records loaded from OBIS"
+    },
+    {
+      "name": "grid_cells.csv",
+      "group": "database",
+      "rows": 12856,
+      "description": "Modelled ocean grid: depth, SST, vessel, fishing, noise, risk class"
+    },
+    {
+      "name": "incidents.csv",
+      "group": "database",
+      "rows": 6847,
+      "description": "Historical mortality incidents with cause and severity"
+    },
+    {
+      "name": "protected_areas.csv",
+      "group": "database",
+      "rows": 7,
+      "description": "Marine protected areas in the study region"
+    },
+    {
+      "name": "corridors.csv",
+      "group": "database",
+      "rows": 14,
+      "description": "Predicted movement corridors between hotspots"
+    },
+    {
+      "name": "risk_predictions.csv",
+      "group": "database",
+      "rows": 12858,
+      "description": "Grid risk predictions with confidence"
+    },
+    {
+      "name": "recommendations.csv",
+      "group": "database",
+      "rows": 3,
+      "description": "Conservation advisories generated from the risk model"
+    },
+    {
+      "name": "recordings.csv",
+      "group": "database",
+      "rows": 67,
+      "description": "Uploaded audio recordings analysed by the platform"
+    },
+    {
+      "name": "audio_analyses.csv",
+      "group": "database",
+      "rows": 67,
+      "description": "Bioacoustic analysis results per recording"
+    },
+    {
+      "name": "image_predictions.csv",
+      "group": "database",
+      "rows": 8,
+      "description": "Photographic species identification history"
+    },
+    {
+      "name": "simulations.csv",
+      "group": "database",
+      "rows": 4,
+      "description": "Marine communication simulator runs"
+    },
+    {
+      "name": "observations.csv",
+      "group": "database",
+      "rows": 1,
+      "description": "Observations submitted through the GIS collection workflow"
+    },
+    {
+      "name": "raw/Megaptera_novaeangliae.csv",
+      "group": "raw",
+      "rows": 10000,
+      "description": "OBIS occurrence records - humpback whale (10,000)"
+    },
+    {
+      "name": "raw/Stenella_longirostris.csv",
+      "group": "raw",
+      "rows": 1500,
+      "description": "OBIS occurrence records - spinner dolphin (1,500)"
+    },
+    {
+      "name": "raw/download_metadata.json",
+      "group": "raw",
+      "rows": "",
+      "description": "OBIS download provenance"
+    },
+    {
+      "name": "processed/sightings_clean.csv",
+      "group": "processed",
+      "rows": 411,
+      "description": "Cleaned sighting table loaded into the database (411)"
+    },
+    {
+      "name": "processed/features_grid.csv",
+      "group": "processed",
+      "rows": 12856,
+      "description": "Modelled ocean grid with risk class per cell (12,856)"
+    },
+    {
+      "name": "processed/features_metadata.json",
+      "group": "processed",
+      "rows": "",
+      "description": "Grid feature definitions and sources"
+    },
+    {
+      "name": "processed/dbscan_clusters.csv",
+      "group": "processed",
+      "rows": 7,
+      "description": "DBSCAN sighting hotspot clusters"
+    },
+    {
+      "name": "processed/kde_density.csv",
+      "group": "processed",
+      "rows": 12856,
+      "description": "Kernel density estimate per grid cell"
+    },
+    {
+      "name": "processed/corridors.csv",
+      "group": "processed",
+      "rows": 14,
+      "description": "Predicted corridors (summary)"
+    },
+    {
+      "name": "processed/corridors_polyline.json",
+      "group": "processed",
+      "rows": "",
+      "description": "Predicted corridor geometries"
+    },
+    {
+      "name": "processed/environment_0.5.csv",
+      "group": "processed",
+      "rows": 12961,
+      "description": "Environmental layer grid"
+    },
+    {
+      "name": "processed/environment_metadata.json",
+      "group": "processed",
+      "rows": "",
+      "description": "Environmental layer provenance"
+    },
+    {
+      "name": "simulated/simulated_layers.csv",
+      "group": "simulated",
+      "rows": 12961,
+      "description": "Simulated human-pressure layers"
+    },
+    {
+      "name": "simulated/vessel_intensity.csv",
+      "group": "simulated",
+      "rows": 12961,
+      "description": "Vessel intensity per grid cell"
+    },
+    {
+      "name": "simulated/fishing_intensity.csv",
+      "group": "simulated",
+      "rows": 12961,
+      "description": "Fishing intensity per grid cell"
+    },
+    {
+      "name": "simulated/noise_proxy.csv",
+      "group": "simulated",
+      "rows": 12961,
+      "description": "Anthropogenic noise proxy per grid cell"
+    },
+    {
+      "name": "simulated/protected_areas.csv",
+      "group": "simulated",
+      "rows": 7,
+      "description": "Protected area definitions"
+    },
+    {
+      "name": "simulated/SIMULATION_METADATA.json",
+      "group": "simulated",
+      "rows": "",
+      "description": "Simulation method and parameters"
+    },
+    {
+      "name": "geojson/sightings.geojson",
+      "group": "geojson",
+      "rows": "",
+      "description": "Sighting records as GeoJSON"
+    },
+    {
+      "name": "geojson/risk_cells.geojson",
+      "group": "geojson",
+      "rows": "",
+      "description": "Risk classification polygons"
+    },
+    {
+      "name": "geojson/hotspots.geojson",
+      "group": "geojson",
+      "rows": "",
+      "description": "Sighting hotspot polygons"
+    },
+    {
+      "name": "geojson/mpas.geojson",
+      "group": "geojson",
+      "rows": "",
+      "description": "Marine protected area polygons"
+    },
+    {
+      "name": "geojson/corridors.geojson",
+      "group": "geojson",
+      "rows": "",
+      "description": "Predicted corridor lines"
+    },
+    {
+      "name": "geojson/incidents.geojson",
+      "group": "geojson",
+      "rows": "",
+      "description": "Incident points"
+    },
+    {
+      "name": "geojson/vessels.geojson",
+      "group": "geojson",
+      "rows": "",
+      "description": "Vessel traffic positions"
+    },
+    {
+      "name": "database/schema.sql",
+      "group": "database",
+      "rows": "",
+      "description": "PostgreSQL schema for the platform"
+    },
+    {
+      "name": "models/ml_metrics.json",
+      "group": "models",
+      "rows": "",
+      "description": "Grid risk model metrics"
+    },
+    {
+      "name": "models/audio_model.json",
+      "group": "models",
+      "rows": "",
+      "description": "Audio species classifier weights"
+    },
+    {
+      "name": "models/image_model_metrics.json",
+      "group": "models",
+      "rows": "",
+      "description": "Image classifier metrics"
+    }
+  ],
+  "total_files": 43,
+  "total_rows": 135603
+}

@@ -1,0 +1,14 @@
+{
+"type": "FeatureCollection",
+"name": "hotspots",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "cluster": 1, "n": 87 }, "geometry": { "type": "Point", "coordinates": [ 32.439827586206896, -28.333965517241374 ] } },
+{ "type": "Feature", "properties": { "cluster": 2, "n": 73 }, "geometry": { "type": "Point", "coordinates": [ 45.1247397260274, -12.822273972602741 ] } },
+{ "type": "Feature", "properties": { "cluster": 3, "n": 199 }, "geometry": { "type": "Point", "coordinates": [ 55.271844221105525, -21.169025125628146 ] } },
+{ "type": "Feature", "properties": { "cluster": 4, "n": 13 }, "geometry": { "type": "Point", "coordinates": [ 23.457615384615387, -34.090230769230772 ] } },
+{ "type": "Feature", "properties": { "cluster": 5, "n": 13 }, "geometry": { "type": "Point", "coordinates": [ 35.475, -22.706615384615382 ] } },
+{ "type": "Feature", "properties": { "cluster": 6, "n": 16 }, "geometry": { "type": "Point", "coordinates": [ 40.4950625, -11.4766875 ] } },
+{ "type": "Feature", "properties": { "cluster": 7, "n": 3 }, "geometry": { "type": "Point", "coordinates": [ 49.768666666666661, -17.009666666666664 ] } }
+]
+}
