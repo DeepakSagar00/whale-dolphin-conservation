@@ -520,6 +520,12 @@ gis_body = pagehead(
   <div>
     <div class="mapframe">
       <div id="map"></div>
+      <div class="mapstats" id="map-stats">
+        <div><span class="k">Records shown</span><span class="v" id="ms-records">-</span></div>
+        <div><span class="k">Species</span><span class="v" id="ms-species">-</span></div>
+        <div><span class="k">Year range</span><span class="v" id="ms-years">-</span></div>
+        <div><span class="k">Source</span><span class="v" id="ms-source">-</span></div>
+      </div>
       <div class="maptools">
         <button class="btn btn--ghost btn--sm" id="map-recenter" title="Recentre">Recentre</button>
         <button class="btn btn--ghost btn--sm" id="map-fit" title="Fit all records">Fit</button>

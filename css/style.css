@@ -330,7 +330,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* map */
 .mapframe { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
-#map { height: calc(100vh - 250px); min-height: 460px; width: 100%; background: #dce9f1; }
+#map { height: calc(100vh - 220px); min-height: 560px; width: 100%; background: #dce9f1; }
 .maplegend {
   position: absolute; bottom: 12px; left: 12px; z-index: 500;
   background: rgba(255, 255, 255, .96); border: 1px solid var(--line);
@@ -339,6 +339,19 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .maplegend h4 { font-size: .68rem; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-500); margin-bottom: 6px; }
 .maplegend div { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; color: var(--ink-700); }
 .maplegend i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+
+/* live context strip over the map - bottom right, clear of the legend,
+   the zoom control and the map tools */
+.mapstats {
+  position: absolute; bottom: 12px; right: 12px; z-index: 500;
+  background: rgba(10, 30, 51, .93); border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 9px; padding: 8px 12px; display: flex; gap: 16px; flex-wrap: wrap;
+  max-width: 330px; box-shadow: var(--shadow); backdrop-filter: blur(6px);
+}
+.mapstats > div { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+.mapstats .k { font-size: .58rem; text-transform: uppercase; letter-spacing: .09em; color: #7f9db5; }
+.mapstats .v { font-size: .82rem; font-weight: 700; color: #fff; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; max-width: 132px; }
 .maptools { position: absolute; top: 12px; right: 12px; z-index: 500; display: flex; flex-direction: column; gap: 6px; }
 .maptools .btn { box-shadow: var(--shadow-sm); }
 

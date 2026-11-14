@@ -26,8 +26,14 @@
     layers: {},
     filter: { species: {}, region: '', from: '', to: '', q: '' },
     selected: null,
-    collecting: false
+    collecting: false,
+    fitted: false
   };
+
+  function setText(id, value) {
+    var node = el(id);
+    if (node) node.textContent = value;
+  }
 
   /* --------------------------------------------------------- geo helpers */
   function regionOf(lat, lon) {
@@ -66,7 +72,7 @@
       })
       .then(function (list) {
         state.records = list.map(mapDb);
-        if (offline) { buildSpeciesList(); buildYearFilters(); render(); return null; }
+        if (offline) { buildSpeciesList(); buildYearFilters(); render(); fitOnce(); return null; }
         return window.API.listObservations({ limit: 2000 }).catch(function () { return null; });
       })
       .then(function (obs) {
@@ -93,6 +99,7 @@
         buildSpeciesList();
         buildYearFilters();
         render();
+        fitOnce();
       })
       .catch(function (err) {
         el('gis-count').textContent = 'unable to load records';
@@ -181,6 +188,22 @@
 
     el('gis-count').textContent = list.length.toLocaleString('en-US') + ' of ' +
       state.records.length.toLocaleString('en-US') + ' records shown';
+
+    /* live context strip over the map */
+    var species = {};
+    var years = [];
+    var sources = {};
+    list.forEach(function (r) {
+      species[r.species] = true;
+      sources[r.source] = true;
+      if (r.year) years.push(r.year);
+    });
+    years.sort(function (a, b) { return a - b; });
+    setText('ms-records', list.length.toLocaleString('en-US'));
+    setText('ms-species', Object.keys(species).length
+      ? Object.keys(species).join(', ') : 'none');
+    setText('ms-years', years.length ? years[0] + '–' + years[years.length - 1] : 'n/a');
+    setText('ms-source', Object.keys(sources).join(', ') || 'n/a');
 
     var rows = list.slice(0, 300).map(function (r, i) {
       return '<tr class="row-click" data-i="' + i + '">' +
@@ -372,7 +395,7 @@
   }
 
   function initMap() {
-    state.map = L.map('map', { scrollWheelZoom: true }).setView([2, 60], 3);
+    state.map = L.map('map', { scrollWheelZoom: true }).setView([0, 60], 3);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18, attribution: '&copy; OpenStreetMap contributors'
     }).addTo(state.map);
@@ -422,7 +445,15 @@
     var list = visibleRecords();
     if (!list.length || !state.map) return;
     var bounds = L.latLngBounds(list.map(function (r) { return [r.lat, r.lon]; }));
-    state.map.fitBounds(bounds, { padding: [30, 30], maxZoom: 7 });
+    state.map.fitBounds(bounds, { padding: [40, 40], maxZoom: 7 });
+  }
+
+  /* Fit the view to the data the first time it loads, so the map opens on the
+     records rather than on an empty patch of ocean. */
+  function fitOnce() {
+    if (state.fitted) return;
+    state.fitted = true;
+    fitAll();
   }
 
   /* ------------------------------------------------------------------ init */

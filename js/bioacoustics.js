@@ -288,7 +288,7 @@
     }
 
     state.file = file;
-    el('file-meta').style.display = 'block';
+    el('file-meta').style.display = 'grid';
     el('file-name').textContent = file.name;
     el('file-size').textContent = (file.size / 1024).toFixed(0) + ' KB';
 

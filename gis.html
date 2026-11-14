@@ -6,7 +6,7 @@
 <title>GIS Marine Map &middot; WhaleAI Conservation</title>
 <meta name="description" content="Interactive GIS map of whale and dolphin observations with species, region and date filtering, record details and an on-map observation submission workflow.">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/style.css?vc9da4b1a">
+<link rel="stylesheet" href="css/style.css?vd00d4c90">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 </head>
 <body>
@@ -170,6 +170,12 @@
   <div>
     <div class="mapframe">
       <div id="map"></div>
+      <div class="mapstats" id="map-stats">
+        <div><span class="k">Records shown</span><span class="v" id="ms-records">-</span></div>
+        <div><span class="k">Species</span><span class="v" id="ms-species">-</span></div>
+        <div><span class="k">Year range</span><span class="v" id="ms-years">-</span></div>
+        <div><span class="k">Source</span><span class="v" id="ms-source">-</span></div>
+      </div>
       <div class="maptools">
         <button class="btn btn--ghost btn--sm" id="map-recenter" title="Recentre">Recentre</button>
         <button class="btn btn--ghost btn--sm" id="map-fit" title="Fit all records">Fit</button>
@@ -200,11 +206,11 @@
 </main>
 </div>
 </div>
-<script src="js/data.js?vc9da4b1a"></script>
-<script src="js/main.js?vc9da4b1a"></script>
-<script src="vendor/leaflet/leaflet.js?vc9da4b1a"></script>
-<script src="js/config.js?vc9da4b1a"></script>
-<script src="js/api.js?vc9da4b1a"></script>
-<script src="js/gis.js?vc9da4b1a"></script>
+<script src="js/data.js?vd00d4c90"></script>
+<script src="js/main.js?vd00d4c90"></script>
+<script src="vendor/leaflet/leaflet.js?vd00d4c90"></script>
+<script src="js/config.js?vd00d4c90"></script>
+<script src="js/api.js?vd00d4c90"></script>
+<script src="js/gis.js?vd00d4c90"></script>
 </body>
 </html>
