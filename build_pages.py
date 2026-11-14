@@ -1279,7 +1279,8 @@ privacy_body = pagehead(
 page("privacy.html", "Privacy Policy",
      "How the WhaleAI marine conservation platform handles audio, photographs, observations and "
      "dashboard access.",
-     privacy_body, "about.html")
+     privacy_body, "about.html",
+     extra_js='<script src="js/config.js"></script>\n<script src="js/api.js"></script>')
 
 print("\nAll pages generated.")
 
